@@ -8,7 +8,7 @@ from maggma.builders.projection_builder import Projection_Builder
 from maggma.stores import MemoryStore
 
 
-@pytest.fixture()
+@pytest.fixture
 def source1():
     store = MemoryStore("source1", key="k", last_updated_field="lu")
     store.connect()
@@ -18,7 +18,7 @@ def source1():
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def source2():
     store = MemoryStore("source2", key="k", last_updated_field="lu")
     store.connect()
@@ -28,7 +28,7 @@ def source2():
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def target():
     store = MemoryStore("target", key="k", last_updated_field="lu")
     store.connect()

@@ -28,7 +28,7 @@ owners = (
 total_owners = len(owners)
 
 
-@pytest.fixture()
+@pytest.fixture
 def owner_store():
     store = MemoryStore("owners", key="name")
     store.connect()
@@ -36,7 +36,7 @@ def owner_store():
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def pipeline_query_op():
     class PipelineQuery(QueryOperator):
         def query(self):

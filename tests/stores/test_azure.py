@@ -32,7 +32,7 @@ AZURITE_CONNECTION_STRING = (
 AZURITE_CONTAINER_NAME = "maggma-test-container"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mongostore():
     store = MongoStore("maggma_test", "test")
     store.connect()
@@ -63,7 +63,7 @@ def azurite_container(container_name=AZURITE_CONTAINER_NAME, create_container=Tr
             container_client.delete_container()
 
 
-@pytest.fixture()
+@pytest.fixture
 def blobstore():
     with azurite_container():
         index = MemoryStore("index", key="task_id")
@@ -77,7 +77,7 @@ def blobstore():
         yield store
 
 
-@pytest.fixture()
+@pytest.fixture
 def blobstore_two_docs(blobstore):
     blobstore.update(
         [
@@ -101,7 +101,7 @@ def blobstore_two_docs(blobstore):
     return blobstore
 
 
-@pytest.fixture()
+@pytest.fixture
 def blobstore_w_subdir():
     with azurite_container():
         index = MemoryStore("index")
@@ -116,7 +116,7 @@ def blobstore_w_subdir():
         yield store
 
 
-@pytest.fixture()
+@pytest.fixture
 def blobstore_multi(blobstore):
     blobstore.workers = 4
 

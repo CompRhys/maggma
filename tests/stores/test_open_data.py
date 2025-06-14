@@ -16,7 +16,7 @@ pd.set_option("future.no_silent_downcasting", True)
 
 
 # PandasMemoryStore tests
-@pytest.fixture()
+@pytest.fixture
 def memstore():
     store = PandasMemoryStore(key="task_id")
     store.update(
@@ -116,7 +116,7 @@ def test_pdmems_count(memstore):
     assert PandasMemoryStore(key="task_id").count() == 0
 
 
-@pytest.fixture()
+@pytest.fixture
 def memstore2():
     store = PandasMemoryStore(key="task_id")
     store.update(
@@ -200,7 +200,7 @@ def test_pdmems_update(memstore):
     assert df2.equals(df)
 
 
-@pytest.fixture()
+@pytest.fixture
 def s3indexstore():
     data = [{"task_id": "mp-1", "last_updated": datetime.utcnow()}]
     with mock_aws():
@@ -274,7 +274,7 @@ def test_s3is_close(s3indexstore):
     assert len(s3indexstore.query()) == 1  # explicit connect reloads manifest
 
 
-@pytest.fixture()
+@pytest.fixture
 def s3store():
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
@@ -307,7 +307,7 @@ def s3store():
         yield store
 
 
-@pytest.fixture()
+@pytest.fixture
 def s3store_w_subdir():
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")

@@ -16,7 +16,7 @@ from maggma.stores import JSONStore, MemoryStore, MongoStore, MongoURIStore, Mon
 from maggma.validators import JSONSchemaValidator
 
 
-@pytest.fixture()
+@pytest.fixture
 def mongostore():
     store = MongoStore(
         database="maggma_test",
@@ -27,7 +27,7 @@ def mongostore():
     store._collection.drop()
 
 
-@pytest.fixture()
+@pytest.fixture
 def montystore():
     store = MontyStore("maggma_test")
     store.connect()
@@ -35,14 +35,14 @@ def montystore():
     store._collection.drop()
 
 
-@pytest.fixture()
+@pytest.fixture
 def memorystore():
     store = MemoryStore()
     store.connect()
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def jsonstore(test_dir):
     files = []
     for f in ["a.json", "b.json"]:

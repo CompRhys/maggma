@@ -4,7 +4,7 @@ from maggma.api.resource import S3URLResource
 from maggma.stores import MemoryStore
 
 
-@pytest.fixture()
+@pytest.fixture
 def entries_store():
     store = MemoryStore("entries", key="url")
     store.connect()

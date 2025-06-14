@@ -11,7 +11,7 @@ from maggma.cli import run
 from maggma.stores import MemoryStore, MongoStore
 
 
-@pytest.fixture()
+@pytest.fixture
 def mongostore():
     store = MongoStore("maggma_test", "test")
     store.connect()
@@ -21,7 +21,7 @@ def mongostore():
     store._collection.drop()
 
 
-@pytest.fixture()
+@pytest.fixture
 def reporting_store():
     store = MongoStore("maggma_test", "reporting")
     store.connect()
@@ -31,7 +31,7 @@ def reporting_store():
     store._collection.drop()
 
 
-@pytest.fixture()
+@pytest.fixture
 def memorystore():
     return MemoryStore("temp")
 

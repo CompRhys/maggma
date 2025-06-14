@@ -16,12 +16,12 @@ def now():
     return datetime.now(timezone.utc)
 
 
-@pytest.fixture()
+@pytest.fixture
 def docs(now):
     return [{"k": i, "a": i % 3, "b": randint(0, i), "lu": now} for i in range(20)]
 
 
-@pytest.fixture()
+@pytest.fixture
 def source(docs):
     store = MemoryStore("source", key="k", last_updated_field="lu")
     store.connect()
@@ -31,7 +31,7 @@ def source(docs):
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def target():
     store = MemoryStore("target", key="ks", last_updated_field="lu")
     store.connect()

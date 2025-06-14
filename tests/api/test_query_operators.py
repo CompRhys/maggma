@@ -113,7 +113,7 @@ def test_sort_serialization():
         assert new_op.query(_sort_fields="volume,-density") == {"sort": {"volume": 1, "density": -1}}
 
 
-@pytest.fixture()
+@pytest.fixture
 def status_enum():
     class StatusEnum(Enum):
         state_A = "A"

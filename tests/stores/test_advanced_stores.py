@@ -23,7 +23,7 @@ from maggma.stores import AliasingStore, MemoryStore, MongograntStore, MongoStor
 from maggma.stores.advanced_stores import substitute
 
 
-@pytest.fixture()
+@pytest.fixture
 def mongostore():
     store = MongoStore("maggma_test", "test")
     store.connect()
@@ -194,7 +194,7 @@ def test_vault_missing_env():
         vault_store()
 
 
-@pytest.fixture()
+@pytest.fixture
 def alias_store():
     memorystore = MemoryStore("test")
     memorystore.connect()
@@ -281,7 +281,7 @@ def test_aliasing_distinct(alias_store):
     assert alias_store.distinct("f") == [3]
 
 
-@pytest.fixture()
+@pytest.fixture
 def sandbox_store():
     memstore = MemoryStore()
     store = SandboxStore(memstore, sandbox="test")
@@ -343,7 +343,7 @@ def test_sandbox_remove_docs(sandbox_store):
     assert sandbox_store.query_one(criteria={"e": 7})
 
 
-@pytest.fixture()
+@pytest.fixture
 def mgrantstore(mgrant_server, mgrant_user):
     config_path, mdport, dbname = mgrant_server
     assert mgrant_user is not None
@@ -353,7 +353,7 @@ def mgrantstore(mgrant_server, mgrant_user):
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def vaultstore():
     os.environ["VAULT_ADDR"] = "https://fake:8200/"
     os.environ["VAULT_TOKEN"] = "dummy"

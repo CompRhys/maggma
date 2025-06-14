@@ -27,7 +27,7 @@ owners = (
 total_owners = len(owners)
 
 
-@pytest.fixture()
+@pytest.fixture
 def owner_store():
     store = MemoryStore("owners", key="name")
     store.connect()

@@ -46,7 +46,7 @@ pets = [
 ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def owner_store():
     store = MemoryStore("owners", key="name")
     store.connect()
@@ -54,7 +54,7 @@ def owner_store():
     return store
 
 
-@pytest.fixture()
+@pytest.fixture
 def pet_store():
     store = MemoryStore("pets", key="name")
     store.connect()
