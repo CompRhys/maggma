@@ -91,9 +91,7 @@ class JSONSchemaValidator(Validator):
 
 
 def msonable_schema(cls):
-    """
-    Convenience function to return a JSON Schema for any MSONable class.
-    """
+    """Convenience function to return a JSON Schema for any MSONable class."""
     return {
         "type": "object",
         "required": ["@class", "@module"],

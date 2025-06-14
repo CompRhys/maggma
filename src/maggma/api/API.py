@@ -12,9 +12,7 @@ from maggma.api.resource import Resource
 
 
 class API(MSONable):
-    """
-    Basic API manager to tie together various resources.
-    """
+    """Basic API manager to tie together various resources."""
 
     def __init__(
         self,
@@ -49,18 +47,14 @@ class API(MSONable):
         self.resources = resources
 
     def on_startup(self):
-        """
-        Basic startup that runs the resource startup functions.
-        """
+        """Basic startup that runs the resource startup functions."""
         for resource_list in self.resources.values():
             for resource in resource_list:
                 resource.on_startup()
 
     @property
     def app(self):
-        """
-        App server for the cluster manager.
-        """
+        """App server for the cluster manager."""
         app = FastAPI(
             title=self.title,
             version=self.version,

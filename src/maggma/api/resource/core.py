@@ -12,9 +12,7 @@ from maggma.utils import dynamic_import
 
 
 class Resource(MSONable, metaclass=ABCMeta):
-    """
-    Base class for a REST Compatible Resource.
-    """
+    """Base class for a REST Compatible Resource."""
 
     def __init__(
         self,
@@ -35,9 +33,7 @@ class Resource(MSONable, metaclass=ABCMeta):
         self.setup_redirect()
 
     def on_startup(self):
-        """
-        Callback to perform some work on resource initialization.
-        """
+        """Callback to perform some work on resource initialization."""
 
     @abstractmethod
     def prepare_endpoint(self):
@@ -68,9 +64,7 @@ class Resource(MSONable, metaclass=ABCMeta):
         uvicorn.run(app)
 
     def as_dict(self) -> dict:
-        """
-        Special as_dict implemented to convert pydantic models into strings.
-        """
+        """Special as_dict implemented to convert pydantic models into strings."""
         d = super().as_dict()  # Ensures sub-classes serialize correctly
         d["model"] = f"{self.model.__module__}.{self.model.__name__}"
         return d
@@ -84,21 +78,15 @@ class Resource(MSONable, metaclass=ABCMeta):
 
 
 class HintScheme(MSONable, metaclass=ABCMeta):
-    """
-    Base class for generic hint schemes generation.
-    """
+    """Base class for generic hint schemes generation."""
 
     @abstractmethod
     def generate_hints(self, query: STORE_PARAMS) -> STORE_PARAMS:
-        """
-        This method takes in a MongoDB query and returns hints.
-        """
+        """This method takes in a MongoDB query and returns hints."""
 
 
 class HeaderProcessor(MSONable, metaclass=ABCMeta):
-    """
-    Base class for generic header processing.
-    """
+    """Base class for generic header processing."""
 
     @abstractmethod
     def process_header(self, response: Response, request: Request):
@@ -110,6 +98,4 @@ class HeaderProcessor(MSONable, metaclass=ABCMeta):
 
     @abstractmethod
     def configure_query_on_request(self, request: Request, query_operator: QueryOperator) -> STORE_PARAMS:
-        """
-        This method takes in a FastAPI Request object and returns a query to be used in the store.
-        """
+        """This method takes in a FastAPI Request object and returns a query to be used in the store."""

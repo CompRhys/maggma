@@ -6,25 +6,6 @@ import pytest
 
 
 @pytest.fixture()
-def tmp_dir():  # noqa: PT004
-    """
-    Create a clean directory and cd into it.
-
-    The directory will be removed at the end of the test.
-    """
-    import os
-    import shutil
-    import tempfile
-
-    old_cwd = os.getcwd()
-    newpath = tempfile.mkdtemp()
-    os.chdir(newpath)
-    yield
-    os.chdir(old_cwd)
-    shutil.rmtree(newpath)
-
-
-@pytest.fixture()
 def test_dir():
     module_dir = Path(__file__).resolve().parent
     test_dir = module_dir / "test_files"
@@ -55,19 +36,3 @@ def log_to_stdout():
     ch.setFormatter(formatter)
     root.addHandler(ch)
     return root
-
-
-def pytest_itemcollected(item):
-    """Make tests names more readable in the tests output."""
-    item._nodeid = (
-        item._nodeid.replace(".py", "")
-        .replace("tests/", "")
-        .replace("test_", "")
-        .replace("_", " ")
-        .replace("Test", "")
-        .replace("Class", " class")
-        .lower()
-    )
-    doc = item.obj.__doc__.strip() if item.obj.__doc__ else ""
-    if doc:
-        item._nodeid = item._nodeid.split("::")[0] + "::" + doc

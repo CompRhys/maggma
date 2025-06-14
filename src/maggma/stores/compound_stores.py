@@ -60,9 +60,7 @@ class JointStore(Store):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         compound_name = ",".join(self.collection_names)
         return f"Compound[{self.host}/{self.database}][{compound_name}]"
 
@@ -91,9 +89,7 @@ class JointStore(Store):
             self._has_merge_objects = self._collection.database.client.server_info()["version"] > "3.6"
 
     def close(self):
-        """
-        Closes underlying database connections.
-        """
+        """Closes underlying database connections."""
         self._collection.database.client.close()
 
     @property
@@ -105,9 +101,7 @@ class JointStore(Store):
 
     @property
     def nonmain_names(self) -> list:
-        """
-        all non-main collection names.
-        """
+        """All non-main collection names."""
         return list(set(self.collection_names) - {self.main})
 
     @property
@@ -133,17 +127,13 @@ class JointStore(Store):
         raise NotImplementedError("JointStore is a read-only store")
 
     def _get_store_by_name(self, name) -> MongoStore:
-        """
-        Gets an underlying collection as a mongoStore.
-        """
+        """Gets an underlying collection as a mongoStore."""
         if name not in self.collection_names:
             raise ValueError("Asking for collection not referenced in this Store")
         return MongoStore.from_collection(self._collection.database[name])
 
     def ensure_index(self, key, unique=False, **kwargs):
-        """
-        Can't ensure index for JointStore.
-        """
+        """Can't ensure index for JointStore."""
         raise NotImplementedError("No ensure_index method for JointStore")
 
     def _get_pipeline(self, criteria=None, properties=None, skip=0, limit=0):
@@ -207,7 +197,7 @@ class JointStore(Store):
         if criteria:
             pipeline.append({"$match": criteria})
         if isinstance(properties, list):
-            properties = {k: 1 for k in properties}
+            properties = dict.fromkeys(properties, 1)
         if properties:
             pipeline.append({"$project": properties})
 
@@ -296,7 +286,7 @@ class JointStore(Store):
 
     def __eq__(self, other: object) -> bool:
         """
-        Check equality for JointStore
+        Check equality for JointStore.
 
         Args:
             other: other JointStore to compare with.
@@ -332,9 +322,7 @@ class ConcatStore(Store):
 
     @property
     def name(self) -> str:
-        """
-        A string representing this data source.
-        """
+        """A string representing this data source."""
         compound_name = ",".join([store.name for store in self.stores])
         return f"Concat[{compound_name}]"
 
@@ -349,9 +337,7 @@ class ConcatStore(Store):
             store.connect(force_reset)
 
     def close(self):
-        """
-        Close all connections in this ConcatStore.
-        """
+        """Close all connections in this ConcatStore."""
         for store in self.stores:
             store.close()
 

@@ -30,9 +30,7 @@ class SparseFieldsQuery(QueryOperator):
             ),
             _all_fields: bool = Query(False, description="Include all fields."),
         ) -> STORE_PARAMS:
-            """
-            Pagination parameters for the API Endpoint.
-            """
+            """Pagination parameters for the API Endpoint."""
             properties = _fields.split(",") if isinstance(_fields, str) else self.default_fields
             if _all_fields:
                 properties = model_fields
@@ -45,24 +43,18 @@ class SparseFieldsQuery(QueryOperator):
         """Stub query function for abstract class."""
 
     def meta(self) -> dict:
-        """
-        Returns metadata for the Sparse field set.
-        """
+        """Returns metadata for the Sparse field set."""
         return {"default_fields": self.default_fields}
 
     def as_dict(self) -> dict:
-        """
-        Special as_dict implemented to convert pydantic models into strings.
-        """
+        """Special as_dict implemented to convert pydantic models into strings."""
         d = super().as_dict()  # Ensures sub-classes serialize correctly
         d["model"] = f"{self.model.__module__}.{self.model.__name__}"  # type: ignore
         return d
 
     @classmethod
     def from_dict(cls, d):
-        """
-        Special from_dict to autoload the pydantic model from the location string.
-        """
+        """Special from_dict to autoload the pydantic model from the location string."""
         model = d.get("model")
         if isinstance(model, str):
             model = dynamic_import(model)

@@ -12,9 +12,7 @@ DataT = TypeVar("DataT")
 
 
 class Meta(BaseModel):
-    """
-    Meta information for the MAPI Response.
-    """
+    """Meta information for the MAPI Response."""
 
     api_version: str = Field(
         __version__,
@@ -38,9 +36,7 @@ class Meta(BaseModel):
 
 
 class Error(BaseModel):
-    """
-    Base Error model for General API.
-    """
+    """Base Error model for General API."""
 
     code: int = Field(..., description="The error code")
     message: str = Field(..., description="The description of the error")
@@ -51,9 +47,7 @@ class Error(BaseModel):
 
 
 class Response(BaseModel, Generic[DataT]):
-    """
-    A Generic API Response.
-    """
+    """A Generic API Response."""
 
     data: Optional[list[DataT]] = Field(None, description="List of returned data")
     errors: Optional[list[Error]] = Field(None, description="Any errors on processing this query")
@@ -80,9 +74,7 @@ class Response(BaseModel, Generic[DataT]):
 
 
 class S3URLDoc(BaseModel):
-    """
-    S3 pre-signed URL data returned by the S3 URL resource.
-    """
+    """S3 pre-signed URL data returned by the S3 URL resource."""
 
     url: str = Field(
         ...,

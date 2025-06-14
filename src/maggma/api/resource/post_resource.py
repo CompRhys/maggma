@@ -16,9 +16,7 @@ from maggma.stores import S3Store
 
 
 class PostOnlyResource(Resource):
-    """
-    Implements a REST Compatible Resource as a POST URL endpoint.
-    """
+    """Implements a REST Compatible Resource as a POST URL endpoint."""
 
     def __init__(
         self,

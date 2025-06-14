@@ -9,7 +9,7 @@ from maggma.stores.ssh_tunnel import SSHTunnel
 
 
 @pytest.fixture()
-def ssh_server_available():  # noqa: PT004
+def _ssh_server_available():
     """Fixture to determine if an SSH server is available to test the SSH tunnel."""
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -32,7 +32,8 @@ def local_port_available(local_port):
 
 
 @pytest.mark.parametrize("local_port", [None, 9000])
-def test_mongostore_connect_via_ssh(ssh_server_available, local_port):
+@pytest.mark.usefixtures("_ssh_server_available")
+def test_mongostore_connect_via_ssh(local_port):
     if local_port is not None:
         local_port_available(local_port)
 
@@ -50,7 +51,8 @@ def test_mongostore_connect_via_ssh(ssh_server_available, local_port):
 
 
 @pytest.mark.parametrize("local_port", [None, 9000])
-def test_serialization(tmpdir, ssh_server_available, local_port):
+@pytest.mark.usefixtures("_ssh_server_available")
+def test_serialization(tmpdir, local_port):
     if local_port is not None:
         local_port_available(local_port)
 

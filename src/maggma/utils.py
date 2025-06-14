@@ -1,6 +1,4 @@
-"""
-Utilities to help with maggma functions.
-"""
+"""Utilities to help with maggma functions."""
 
 import itertools
 import logging
@@ -37,20 +35,14 @@ def primed(iterable: Iterable) -> Iterable:
 
 
 class TqdmLoggingHandler(logging.Handler):
-    """
-    Helper to enable routing tqdm progress around logging.
-    """
+    """Helper to enable routing tqdm progress around logging."""
 
     def __init__(self, level=logging.NOTSET):
-        """
-        Initialize the Tqdm handler.
-        """
+        """Initialize the Tqdm handler."""
         super().__init__(level)
 
     def emit(self, record):
-        """
-        Emit a record via Tqdm screen.
-        """
+        """Emit a record via Tqdm screen."""
         try:
             msg = self.format(record)
             tqdm.write(msg)
@@ -136,9 +128,7 @@ def grouper(iterable: Iterable, n: int) -> Iterable:
 
 
 def lazy_substitute(d: dict, aliases: dict):
-    """
-    Simple top level substitute that doesn't dive into mongo like strings.
-    """
+    """Simple top level substitute that doesn't dive into mongo like strings."""
     for alias, key in aliases.items():
         if key in d:
             d[alias] = d[key]
@@ -157,9 +147,7 @@ def substitute(d: dict, aliases: dict):
 
 
 def unset(d: dict, key: str):
-    """
-    Unsets a key.
-    """
+    """Unsets a key."""
     _unset(d, key)
     path = to_path(key)
     for i in reversed(range(1, len(path))):
@@ -186,31 +174,23 @@ class Timeout:
         self.error_message = error_message
 
     def handle_timeout(self, signum, frame):
-        """
-        Raises an error on timeout.
-        """
+        """Raises an error on timeout."""
         raise TimeoutError(self.error_message)
 
     def __enter__(self):
-        """
-        Enter context with timeout.
-        """
+        """Enter context with timeout."""
         if self.seconds:
             signal.signal(signal.SIGALRM, self.handle_timeout)
             signal.alarm(self.seconds)
 
     def __exit__(self, type, value, traceback):
-        """
-        Exit context with timeout.
-        """
+        """Exit context with timeout."""
         if self.seconds:
             signal.alarm(0)
 
 
 def dynamic_import(abs_module_path: str, class_name: Optional[str] = None):
-    """
-    Dynamic class importer from: https://www.bnmetrics.com/blog/dynamic-import-in-python3.
-    """
+    """Dynamic class importer from: https://www.bnmetrics.com/blog/dynamic-import-in-python3."""
     if class_name is None:
         class_name = abs_module_path.split(".")[-1]
         abs_module_path = ".".join(abs_module_path.split(".")[:-1])
@@ -226,9 +206,7 @@ class ReportingHandler(logging.Handler):
     """
 
     def __init__(self, reporting_store):
-        """
-        Initialize the Reporting Logger.
-        """
+        """Initialize the Reporting Logger."""
         super().__init__(logging.NOTSET)
         self.reporting_store = reporting_store
         self.reporting_store.connect()
@@ -237,9 +215,7 @@ class ReportingHandler(logging.Handler):
         self.build_id = uuid.uuid4()
 
     def emit(self, record):
-        """
-        Emit a record via Tqdm screen.
-        """
+        """Emit a record via Tqdm screen."""
         if "maggma" in record.__dict__:
             maggma_record = record.maggma
             event = maggma_record["event"]

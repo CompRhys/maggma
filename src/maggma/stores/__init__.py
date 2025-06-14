@@ -10,20 +10,20 @@ from maggma.stores.gridfs import GridFSStore
 from maggma.stores.mongolike import JSONStore, MemoryStore, MongoStore, MongoURIStore, MontyStore
 
 __all__ = [
-    "Store",
     "AliasingStore",
-    "MongograntStore",
-    "SandboxStore",
-    "VaultStore",
-    "S3Store",
     "AzureBlobStore",
     "ConcatStore",
-    "JointStore",
-    "GridFSStore",
     "FileStore",
+    "GridFSStore",
     "JSONStore",
+    "JointStore",
     "MemoryStore",
     "MongoStore",
     "MongoURIStore",
+    "MongograntStore",
     "MontyStore",
+    "S3Store",
+    "SandboxStore",
+    "Store",
+    "VaultStore",
 ]

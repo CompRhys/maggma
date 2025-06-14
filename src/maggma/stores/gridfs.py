@@ -39,9 +39,7 @@ files_collection_fields = (
 
 
 class GridFSStore(Store):
-    """
-    A Store for GridFS backend. Provides a common access method consistent with other stores.
-    """
+    """A Store for GridFS backend. Provides a common access method consistent with other stores."""
 
     def __init__(
         self,
@@ -122,9 +120,7 @@ class GridFSStore(Store):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         return f"gridfs://{self.host}/{self.database}/{self.collection_name}"
 
     def connect(self, force_reset: bool = False):
@@ -518,9 +514,7 @@ class GridFSURIStore(GridFSStore):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         # TODO: This is not very safe since it exposes the username/password info
         return self.uri
 

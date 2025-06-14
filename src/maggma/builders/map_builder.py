@@ -1,6 +1,4 @@
-"""
-One-to-One Map Builder and a simple CopyBuilder implementation.
-"""
+"""One-to-One Map Builder and a simple CopyBuilder implementation."""
 
 import traceback
 from abc import ABCMeta, abstractmethod
@@ -66,9 +64,7 @@ class MapBuilder(Builder, metaclass=ABCMeta):
         super().__init__(sources=[source], targets=[target], **kwargs)
 
     def ensure_indexes(self):
-        """
-        Ensures indices on critical fields for MapBuilder.
-        """
+        """Ensures indices on critical fields for MapBuilder."""
         index_checks = [
             self.source.ensure_index(self.source.key),
             self.source.ensure_index(self.source.last_updated_field),
@@ -148,8 +144,7 @@ class MapBuilder(Builder, metaclass=ABCMeta):
                 processed.update({"state": "successful"})
 
             for k in [self.source.key, self.source.last_updated_field]:
-                if k in processed:
-                    del processed[k]
+                processed.pop(k, None)
 
         except Exception as e:
             self.logger.error(traceback.format_exc())
@@ -171,9 +166,7 @@ class MapBuilder(Builder, metaclass=ABCMeta):
         return out
 
     def update_targets(self, items: list[dict]):
-        """
-        Generic update targets for Map Builder.
-        """
+        """Generic update targets for Map Builder."""
         target = self.target
         for item in items:
             item["_bt"] = datetime.utcnow()
@@ -184,14 +177,12 @@ class MapBuilder(Builder, metaclass=ABCMeta):
             target.update(items)
 
     def finalize(self):
-        """
-        Finalize MapBuilder operations including removing orphaned documents.
-        """
+        """Finalize MapBuilder operations including removing orphaned documents."""
         if self.delete_orphans:
             source_keyvals = set(self.source.distinct(self.source.key))
             target_keyvals = set(self.target.distinct(self.target.key))
             to_delete = list(target_keyvals - source_keyvals)
-            if len(to_delete):
+            if to_delete:
                 self.logger.info(f"Finalize: Deleting {len(to_delete)} orphans.")
             self.target.remove_docs({self.target.key: {"$in": to_delete}})
         super().finalize()
@@ -212,9 +203,7 @@ class CopyBuilder(MapBuilder):
     """Sync a source store with a target store."""
 
     def unary_function(self, item):
-        """
-        Identity function for copy builder map operation.
-        """
+        """Identity function for copy builder map operation."""
         if "_id" in item:
             del item["_id"]
         return item

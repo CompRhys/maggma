@@ -103,7 +103,6 @@ class FileStore(MemoryStore):
         self.json_name = json_name
         file_filters = file_filters if file_filters else ["*"]
         self.file_filters = re.compile("|".join(fnmatch.translate(p) for p in file_filters))
-        self.collection_name = "file_store"
         self.key = "file_id"
         self.include_orphans = include_orphans
         self.read_only = read_only
@@ -113,23 +112,19 @@ class FileStore(MemoryStore):
         self.metadata_store = JSONStore(
             paths=[str(self.path / self.json_name)],
             read_only=self.read_only,
-            collection_name=self.collection_name,
             key=self.key,
         )
 
         self.kwargs = kwargs
 
         super().__init__(
-            collection_name=self.collection_name,
             key=self.key,
             **self.kwargs,
         )
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         return f"file://{self.path}"
 
     def add_metadata(
@@ -412,7 +407,7 @@ class FileStore(MemoryStore):
             warnings.warn("'contents' is not a queryable field! Ignoring.")
 
         if isinstance(properties, list):
-            properties = {p: 1 for p in properties}
+            properties = dict.fromkeys(properties, 1)
 
         orig_properties = properties.copy() if properties else None
 

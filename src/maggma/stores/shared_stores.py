@@ -60,16 +60,12 @@ class StoreFacade(Store):
 
     @property
     def _collection(self):
-        """
-        Returns a handle to the pymongo collection object.
-        """
+        """Returns a handle to the pymongo collection object."""
         return self.multistore.store_collection(self.store)
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         return self.multistore.store_name(self.store)
 
     def connect(self, force_reset: bool = False):
@@ -83,9 +79,7 @@ class StoreFacade(Store):
         self.multistore.connect(self.store, force_reset=force_reset)
 
     def close(self):
-        """
-        Closes any connections.
-        """
+        """Closes any connections."""
         self.multistore.close(self.store)
 
     def count(self, criteria: Optional[dict] = None) -> int:
@@ -257,9 +251,7 @@ class MultiStore:
     """
 
     def __init__(self, **kwargs):
-        """
-        Initializes a MultiStore.
-        """
+        """Initializes a MultiStore."""
         # Keep a list of stores, since there is no way to hash a store (to use a dict)
         self._stores = []
         self._multistore_lock = Lock()
@@ -386,9 +378,7 @@ class MultiStore:
                 store.connect(force_reset)
 
     def close_all(self):
-        """
-        Closes all connections.
-        """
+        """Closes all connections."""
         with self._multistore_lock:
             for store in self._stores:
                 store.close()

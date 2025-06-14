@@ -19,9 +19,7 @@ _BASENAME = "maggma.cli.sources"
 
 
 class ScriptFinder(MetaPathFinder):
-    """
-    Special Finder designed to find custom script builders.
-    """
+    """Special Finder designed to find custom script builders."""
 
     @classmethod
     def find_spec(cls, fullname, path, target=None):
@@ -113,9 +111,7 @@ def spec_from_source(file_path: str) -> ModuleSpec:
 
 
 def load_builder_from_source(file_path: str) -> list[Builder]:
-    """
-    Loads Maggma Builders from a Python source file.
-    """
+    """Loads Maggma Builders from a Python source file."""
     file_path = str(Path(file_path).resolve())
     spec = spec_from_source(file_path)
     module_object = importlib.util.module_from_spec(spec)

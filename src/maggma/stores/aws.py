@@ -438,8 +438,7 @@ class S3Store(Store):
             search_doc["sub_dir"] = self.sub_dir
 
         # Remove MongoDB _id from search
-        if "_id" in search_doc:
-            del search_doc["_id"]
+        search_doc.pop("_id", None)
 
         # to make hashing more meaningful, make sure last updated field is removed
         lu_info = doc.pop(self.last_updated_field, None)

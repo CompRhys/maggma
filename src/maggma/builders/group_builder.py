@@ -1,6 +1,4 @@
-"""
-Many-to-Many GroupBuilder.
-"""
+"""Many-to-Many GroupBuilder."""
 
 import traceback
 from abc import ABCMeta, abstractmethod
@@ -156,9 +154,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         return processed
 
     def update_targets(self, items: list[dict]):
-        """
-        Generic update targets for Group Builder.
-        """
+        """Generic update targets for Group Builder."""
         target = self.target
         for item in items:
             if "_id" in item:
@@ -182,9 +178,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         """
 
     def get_ids_to_process(self) -> Iterable:
-        """
-        Gets the IDs that need to be processed.
-        """
+        """Gets the IDs that need to be processed."""
         distinct_from_target = list(self.target.distinct(self._target_keys_field, criteria=self.query))
         processed_ids = []
         # Not always guaranteed that MongoDB will unpack the list so we
@@ -213,9 +207,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         return list(new_ids | unprocessed_ids)
 
     def get_groups_from_keys(self, keys) -> set[tuple]:
-        """
-        Get the groups by grouping_keys for these documents.
-        """
+        """Get the groups by grouping_keys for these documents."""
         grouping_keys = self.grouping_keys
 
         groups: set[tuple] = set()
