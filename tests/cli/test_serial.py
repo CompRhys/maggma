@@ -2,7 +2,7 @@ from maggma.cli.serial import serial
 from maggma.core import Builder
 
 
-class TestBuilder(Builder):
+class MockBuilder(Builder):
     def __init__(self, total=10):
         self.get_called = 0
         self.process_called = 0
@@ -24,7 +24,7 @@ class TestBuilder(Builder):
 
 
 def test_serial():
-    builder = TestBuilder()
+    builder = MockBuilder()
 
     serial(builder)
     assert builder.get_called == 10
