@@ -4,11 +4,12 @@ Module containing the core builder definition.
 
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Iterable, List, Union
+from collections.abc import Iterable
+from typing import Any, Union
 
 from monty.json import MontyDecoder, MSONable
 
-from maggma.core.store import Store
+from maggma.core.store import Store, StoreError
 from maggma.utils import TqdmLoggingHandler, grouper, tqdm
 
 
@@ -25,8 +26,8 @@ class Builder(MSONable, metaclass=ABCMeta):
 
     def __init__(
         self,
-        sources: Union[List[Store], Store],
-        targets: Union[List[Store], Store],
+        sources: Union[list[Store], Store],
+        targets: Union[list[Store], Store],
         chunk_size: int = 1000,
     ):
         """
@@ -51,7 +52,7 @@ class Builder(MSONable, metaclass=ABCMeta):
         for s in self.sources + self.targets:
             s.connect()
 
-    def prechunk(self, number_splits: int) -> Iterable[Dict]:
+    def prechunk(self, number_splits: int) -> Iterable[dict]:
         """
         Part of a domain-decomposition paradigm to allow the builder to operate on
         multiple nodes by dividing up the IO as well as the compute
@@ -93,7 +94,7 @@ class Builder(MSONable, metaclass=ABCMeta):
         return item
 
     @abstractmethod
-    def update_targets(self, items: List):
+    def update_targets(self, items: list):
         """
         Takes a list of items from process item and updates the targets with them.
         Can also perform other book keeping in the process such as storing gridfs oids, etc.
@@ -113,7 +114,7 @@ class Builder(MSONable, metaclass=ABCMeta):
         for store in self.sources + self.targets:
             try:
                 store.close()
-            except AttributeError:
+            except (AttributeError, StoreError):
                 continue
 
     def run(self, log_level=logging.DEBUG):

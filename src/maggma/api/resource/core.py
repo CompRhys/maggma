@@ -1,12 +1,12 @@
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Type
 
 from fastapi import APIRouter, FastAPI, Request, Response
 from monty.json import MontyDecoder, MSONable
 from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 
+from maggma.api.query_operator import QueryOperator
 from maggma.api.utils import STORE_PARAMS, api_sanitize
 from maggma.utils import dynamic_import
 
@@ -18,7 +18,7 @@ class Resource(MSONable, metaclass=ABCMeta):
 
     def __init__(
         self,
-        model: Type[BaseModel],
+        model: type[BaseModel],
     ):
         """
         Args:
@@ -53,7 +53,6 @@ class Resource(MSONable, metaclass=ABCMeta):
             Redirects unforward slashed url to resource
             url with the forward slash.
             """
-
             url = self.router.url_path_for("/")
             return RedirectResponse(url=url, status_code=301)
 
@@ -68,17 +67,16 @@ class Resource(MSONable, metaclass=ABCMeta):
         app.include_router(self.router, prefix="")
         uvicorn.run(app)
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> dict:
         """
         Special as_dict implemented to convert pydantic models into strings.
         """
-
         d = super().as_dict()  # Ensures sub-classes serialize correctly
         d["model"] = f"{self.model.__module__}.{self.model.__name__}"
         return d
 
     @classmethod
-    def from_dict(cls, d: Dict):
+    def from_dict(cls, d: dict):
         if isinstance(d["model"], str):
             d["model"] = dynamic_import(d["model"])
         d = {k: MontyDecoder().process_decoded(v) for k, v in d.items()}
@@ -108,4 +106,10 @@ class HeaderProcessor(MSONable, metaclass=ABCMeta):
         This method takes in a FastAPI Response object and processes a new header for it in-place.
         It can use data in the upstream request to generate the header.
         (https://fastapi.tiangolo.com/advanced/response-headers/#use-a-response-parameter).
+        """
+
+    @abstractmethod
+    def configure_query_on_request(self, request: Request, query_operator: QueryOperator) -> STORE_PARAMS:
+        """
+        This method takes in a FastAPI Request object and returns a query to be used in the store.
         """

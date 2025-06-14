@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Type
+from typing import Optional
 
 from fastapi import Query
 from pydantic import BaseModel
@@ -9,13 +9,12 @@ from maggma.utils import dynamic_import
 
 
 class SparseFieldsQuery(QueryOperator):
-    def __init__(self, model: Type[BaseModel], default_fields: Optional[List[str]] = None):
+    def __init__(self, model: type[BaseModel], default_fields: Optional[list[str]] = None):
         """
         Args:
             model: PyDantic Model that represents the underlying data source
             default_fields: default fields to return in the API response if no fields are explicitly requested.
         """
-
         self.model = model
 
         model_name = self.model.__name__  # type: ignore
@@ -34,7 +33,6 @@ class SparseFieldsQuery(QueryOperator):
             """
             Pagination parameters for the API Endpoint.
             """
-
             properties = _fields.split(",") if isinstance(_fields, str) else self.default_fields
             if _all_fields:
                 properties = model_fields
@@ -44,19 +42,18 @@ class SparseFieldsQuery(QueryOperator):
         self.query = query  # type: ignore
 
     def query(self):
-        "Stub query function for abstract class."
+        """Stub query function for abstract class."""
 
-    def meta(self) -> Dict:
+    def meta(self) -> dict:
         """
         Returns metadata for the Sparse field set.
         """
         return {"default_fields": self.default_fields}
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> dict:
         """
         Special as_dict implemented to convert pydantic models into strings.
         """
-
         d = super().as_dict()  # Ensures sub-classes serialize correctly
         d["model"] = f"{self.model.__module__}.{self.model.__name__}"  # type: ignore
         return d

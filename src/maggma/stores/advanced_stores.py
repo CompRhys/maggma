@@ -1,14 +1,13 @@
 """
 Advanced Stores for behavior outside normal access patterns.
 """
+
 import json
 import os
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from collections.abc import Iterator
+from typing import Optional, Union
 
-from mongogrant import Client
-from mongogrant.client import check
-from mongogrant.config import Config
-from monty.dev import requires
+from monty.dev import deprecated, requires
 
 from maggma.core import Sort, Store, StoreError
 from maggma.stores.mongolike import MongoStore
@@ -18,8 +17,15 @@ try:
     import hvac
 except ImportError:
     hvac = None
+try:
+    from mongogrant import Client
+    from mongogrant.client import check
+    from mongogrant.config import Config
+except ImportError:
+    Client = None
 
 
+@deprecated(MongoStore)
 class MongograntStore(MongoStore):
     """Initialize a Store with a mongogrant "`<role>`:`<host>`/`<db>`." spec.
 
@@ -29,6 +35,10 @@ class MongograntStore(MongoStore):
     mongogrant documentation: https://github.com/materialsproject/mongogrant
     """
 
+    @requires(
+        Client is not None,
+        "mongogrant is required to use MongoGrantStore. Please run `pip install maggma[mongogrant]",
+    )
     def __init__(
         self,
         mongogrant_spec: str,
@@ -191,7 +201,7 @@ class AliasingStore(Store):
     Special Store that aliases for the primary accessors.
     """
 
-    def __init__(self, store: Store, aliases: Dict, **kwargs):
+    def __init__(self, store: Store, aliases: dict, **kwargs):
         """
         Args:
             store: the store to wrap around
@@ -219,7 +229,7 @@ class AliasingStore(Store):
         """
         return self.store.name
 
-    def count(self, criteria: Optional[Dict] = None) -> int:
+    def count(self, criteria: Optional[dict] = None) -> int:
         """
         Counts the number of documents matching the query criteria.
 
@@ -232,12 +242,12 @@ class AliasingStore(Store):
 
     def query(
         self,
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Dict]:
+    ) -> Iterator[dict]:
         """
         Queries the Store for a set of documents.
 
@@ -249,7 +259,6 @@ class AliasingStore(Store):
             skip: number documents to skip
             limit: limit on total number of documents returned
         """
-
         criteria = criteria if criteria else {}
 
         if properties is not None:
@@ -262,7 +271,7 @@ class AliasingStore(Store):
             substitute(d, self.aliases)
             yield d
 
-    def distinct(self, field: str, criteria: Optional[Dict] = None, all_exist: bool = False) -> List:
+    def distinct(self, field: str, criteria: Optional[dict] = None, all_exist: bool = False) -> list:
         """
         Get all distinct values for a field.
 
@@ -278,13 +287,13 @@ class AliasingStore(Store):
 
     def groupby(
         self,
-        keys: Union[List[str], str],
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        keys: Union[list[str], str],
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Tuple[Dict, List[Dict]]]:
+    ) -> Iterator[tuple[dict, list[dict]]]:
         """
         Simple grouping function that will group documents
         by keys.
@@ -305,7 +314,7 @@ class AliasingStore(Store):
         keys = keys if isinstance(keys, list) else [keys]
 
         # Make the aliasing transformations on keys
-        keys = [self.aliases[k] if k in self.aliases else k for k in keys]
+        keys = [self.aliases.get(k, k) for k in keys]
 
         # Update criteria and properties based on aliases
         criteria = criteria if criteria else {}
@@ -319,7 +328,7 @@ class AliasingStore(Store):
 
         return self.store.groupby(keys=keys, properties=properties, criteria=criteria, skip=skip, limit=limit)
 
-    def update(self, docs: Union[List[Dict], Dict], key: Union[List, str, None] = None):
+    def update(self, docs: Union[list[dict], dict], key: Union[list, str, None] = None):
         """
         Update documents into the Store.
 
@@ -340,7 +349,7 @@ class AliasingStore(Store):
 
         self.store.update(docs, key=key)
 
-    def remove_docs(self, criteria: Dict):
+    def remove_docs(self, criteria: dict):
         """
         Remove docs matching the query dictionary.
 
@@ -411,7 +420,7 @@ class SandboxStore(Store):
         return f"Sandbox[{self.store.name}][{self.sandbox}]"
 
     @property
-    def sbx_criteria(self) -> Dict:
+    def sbx_criteria(self) -> dict:
         """
         Returns:
             the sandbox criteria dict used to filter the source store.
@@ -420,7 +429,7 @@ class SandboxStore(Store):
             return {"sbxn": self.sandbox}
         return {"$or": [{"sbxn": {"$in": [self.sandbox]}}, {"sbxn": {"$exists": False}}]}
 
-    def count(self, criteria: Optional[Dict] = None) -> int:
+    def count(self, criteria: Optional[dict] = None) -> int:
         """
         Counts the number of documents matching the query criteria.
 
@@ -432,12 +441,12 @@ class SandboxStore(Store):
 
     def query(
         self,
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Dict]:
+    ) -> Iterator[dict]:
         """
         Queries the Store for a set of documents.
 
@@ -454,13 +463,13 @@ class SandboxStore(Store):
 
     def groupby(
         self,
-        keys: Union[List[str], str],
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        keys: Union[list[str], str],
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Tuple[Dict, List[Dict]]]:
+    ) -> Iterator[tuple[dict, list[dict]]]:
         """
         Simple grouping function that will group documents
         by keys.
@@ -481,7 +490,7 @@ class SandboxStore(Store):
 
         return self.store.groupby(keys=keys, properties=properties, criteria=criteria, skip=skip, limit=limit)
 
-    def update(self, docs: Union[List[Dict], Dict], key: Union[List, str, None] = None):
+    def update(self, docs: Union[list[dict], dict], key: Union[list, str, None] = None):
         """
         Update documents into the Store.
 
@@ -500,7 +509,7 @@ class SandboxStore(Store):
 
         self.store.update(docs, key=key)
 
-    def remove_docs(self, criteria: Dict):
+    def remove_docs(self, criteria: dict):
         """
         Remove docs matching the query dictionary.
 

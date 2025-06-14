@@ -4,7 +4,7 @@ from datetime import datetime
 import boto3
 import pytest
 from botocore.exceptions import ClientError
-from moto import mock_s3
+from moto import mock_aws
 from sshtunnel import BaseSSHTunnelForwarderError
 
 from maggma.core.store import StoreError
@@ -33,7 +33,7 @@ def ssh_tunnel():
 
 @pytest.fixture()
 def s3store():
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket="bucket1")
 
@@ -65,7 +65,7 @@ def s3store():
 
 @pytest.fixture()
 def s3store_w_subdir():
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket="bucket1")
 
@@ -78,7 +78,7 @@ def s3store_w_subdir():
 
 @pytest.fixture()
 def s3store_multi():
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket="bucket1")
 
@@ -91,7 +91,7 @@ def s3store_multi():
 
 @pytest.fixture()
 def s3store_with_tunnel(ssh_tunnel):
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket="bucket1")
 
@@ -103,7 +103,7 @@ def s3store_with_tunnel(ssh_tunnel):
 
 
 def test_keys():
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket="bucket1")
         index = MemoryStore("index", key=1)
@@ -307,7 +307,7 @@ def test_searchable_fields(s3store):
 
 
 def test_newer_in(s3store):
-    with mock_s3():
+    with mock_aws():
         tic = datetime(2018, 4, 12, 16)
         tic2 = datetime.utcnow()
         conn = boto3.client("s3")
@@ -359,7 +359,7 @@ def test_get_session(s3store):
 
 
 def test_no_bucket():
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket="bucket1")
 
@@ -432,7 +432,7 @@ def test_ssh_tunnel_2():
             return "ADDRESS", "PORT"
 
     def get_store():
-        with mock_s3():
+        with mock_aws():
             conn = boto3.resource("s3", region_name="us-east-1")
             conn.create_bucket(Bucket="bucket1")
 

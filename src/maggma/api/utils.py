@@ -3,10 +3,9 @@ import inspect
 from typing import (
     Any,
     Callable,
-    Dict,
-    List,
+    Literal,
     Optional,
-    Type,
+    Union,
     get_args,  # pragma: no cover
 )
 
@@ -15,12 +14,11 @@ from monty.json import MSONable
 from pydantic import BaseModel
 from pydantic._internal._utils import lenient_issubclass
 from pydantic.fields import FieldInfo
-from typing_extensions import Literal, Union
 
 from maggma.utils import get_flat_models_from_model
 
 QUERY_PARAMS = ["criteria", "properties", "skip", "limit"]
-STORE_PARAMS = Dict[
+STORE_PARAMS = dict[
     Literal[
         "criteria",
         "properties",
@@ -32,15 +30,15 @@ STORE_PARAMS = Dict[
         "count_hint",
         "agg_hint",
         "update",
+        "facets",
     ],
     Any,
 ]
 
 
-def merge_queries(queries: List[STORE_PARAMS]) -> STORE_PARAMS:
+def merge_queries(queries: list[STORE_PARAMS]) -> STORE_PARAMS:
     criteria: STORE_PARAMS = {}
-    properties: List[str] = []
-
+    properties: list[str] = []
     for sub_query in queries:
         if "criteria" in sub_query:
             criteria.update(sub_query["criteria"])
@@ -56,7 +54,36 @@ def merge_queries(queries: List[STORE_PARAMS]) -> STORE_PARAMS:
     }
 
 
-def attach_signature(function: Callable, defaults: Dict, annotations: Dict):
+def merge_atlas_querires(queries: list[STORE_PARAMS]) -> STORE_PARAMS:
+    """Merge queries for atlas search, same keys, e.g. "equals", are merged into a list."""
+    criteria: list[dict] = []
+    facets: dict[dict] = {}
+    properties: list[str] = []
+    for sub_query in queries:
+        if "criteria" in sub_query:
+            for k, v in sub_query["criteria"].items():
+                if isinstance(v, dict):
+                    # only one criteria per operator
+                    criteria.append({k: v})
+                elif isinstance(v, list):
+                    # multiple criteria per operator
+                    criteria.extend({k: i} for i in v)
+        if sub_query.get("facets", False):
+            facets.update(sub_query["facets"])
+        if sub_query.get("properties", False):
+            properties.extend(sub_query["properties"])
+
+    remainder = {k: v for query in queries for k, v in query.items() if k not in ["criteria", "properties", "facets"]}
+
+    return {
+        "criteria": criteria,
+        "properties": properties if len(properties) > 0 else None,
+        "facets": facets if len(facets) > 0 else None,
+        **remainder,
+    }
+
+
+def attach_signature(function: Callable, defaults: dict, annotations: dict):
     """
     Attaches signature for defaults and annotations for parameters to function.
 
@@ -65,24 +92,23 @@ def attach_signature(function: Callable, defaults: Dict, annotations: Dict):
         defaults: dictionary of parameters -> default values
         annotations: dictionary of type annotations for the parameters
     """
-
     required_params = [
         inspect.Parameter(
             param,
             inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            default=defaults.get(param, None),
-            annotation=annotations.get(param, None),
+            default=defaults.get(param),
+            annotation=annotations.get(param),
         )
         for param in annotations
-        if param not in defaults.keys()
+        if param not in defaults
     ]
 
     optional_params = [
         inspect.Parameter(
             param,
             inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            default=defaults.get(param, None),
-            annotation=annotations.get(param, None),
+            default=defaults.get(param),
+            annotation=annotations.get(param),
         )
         for param in defaults
     ]
@@ -108,7 +134,6 @@ def api_sanitize(
         allow_dict_msonable (bool): Whether to allow dictionaries in place of MSONable quantities.
             Defaults to False
     """
-
     models = [
         model for model in get_flat_models_from_model(pydantic_model) if issubclass(model, BaseModel)
     ]  # type: list[BaseModel]
@@ -140,7 +165,7 @@ def api_sanitize(
     return pydantic_model
 
 
-def allow_msonable_dict(monty_cls: Type[MSONable]):
+def allow_msonable_dict(monty_cls: type[MSONable]):
     """
     Patch Monty to allow for dict values for MSONable.
     """

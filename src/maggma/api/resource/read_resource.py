@@ -1,5 +1,5 @@
 from inspect import signature
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Optional, Union
 
 import orjson
 from fastapi import Depends, HTTPException, Path, Request, Response
@@ -27,12 +27,13 @@ class ReadOnlyResource(Resource):
     def __init__(
         self,
         store: Store,
-        model: Type[BaseModel],
-        tags: Optional[List[str]] = None,
-        query_operators: Optional[List[QueryOperator]] = None,
-        key_fields: Optional[List[str]] = None,
+        model: type[BaseModel],
+        tags: Optional[list[str]] = None,
+        query_operators: Optional[list[QueryOperator]] = None,
+        key_fields: Optional[list[str]] = None,
         hint_scheme: Optional[HintScheme] = None,
         header_processor: Optional[HeaderProcessor] = None,
+        query_to_configure_on_request: Optional[QueryOperator] = None,
         timeout: Optional[int] = None,
         enable_get_by_key: bool = False,
         enable_default_search: bool = True,
@@ -49,6 +50,7 @@ class ReadOnlyResource(Resource):
             query_operators: Operators for the query language
             hint_scheme: The hint scheme to use for this resource
             header_processor: The header processor to use for this resource
+            query_to_configure_on_request: Query operator to configure on request
             timeout: Time in seconds Pymongo should wait when querying MongoDB
                 before raising a timeout error
             key_fields: List of fields to always project. Default uses SparseFieldsQuery
@@ -66,6 +68,7 @@ class ReadOnlyResource(Resource):
         self.tags = tags or []
         self.hint_scheme = hint_scheme
         self.header_processor = header_processor
+        self.query_to_configure_on_request = query_to_configure_on_request
         self.key_fields = key_fields
         self.versioned = False
         self.enable_get_by_key = enable_get_by_key
@@ -100,7 +103,6 @@ class ReadOnlyResource(Resource):
         Internal method to prepare the endpoint by setting up default handlers
         for routes.
         """
-
         if self.enable_get_by_key:
             self.build_get_by_key()
 
@@ -193,14 +195,21 @@ class ReadOnlyResource(Resource):
     def build_dynamic_model_search(self):
         model_name = self.model.__name__
 
-        def search(**queries: Dict[str, STORE_PARAMS]) -> Union[Dict, Response]:
+        def search(**queries: dict[str, STORE_PARAMS]) -> Union[dict, Response]:
+
             request: Request = queries.pop("request")  # type: ignore
             temp_response: Response = queries.pop("temp_response")  # type: ignore
 
+            if self.query_to_configure_on_request is not None:
+                # give the key name "request", arbitrary choice, as only the value gets merged into the query
+                queries["groups"] = self.header_processor.configure_query_on_request(
+                    request=request, query_operator=self.query_to_configure_on_request
+                )
+            # allowed query parameters
             query_params = [
                 entry for _, i in enumerate(self.query_operators) for entry in signature(i.query).parameters
             ]
-
+            # check for overlap between allowed query parameters and request query parameters
             overlap = [key for key in request.query_params if key not in query_params]
             if any(overlap):
                 if "limit" in overlap or "skip" in overlap:
@@ -209,14 +218,12 @@ class ReadOnlyResource(Resource):
                         detail="'limit' and 'skip' parameters have been renamed. "
                         "Please update your API client to the newest version.",
                     )
-
                 else:
                     raise HTTPException(
                         status_code=400,
                         detail="Request contains query parameters which cannot be used: {}".format(", ".join(overlap)),
                     )
-
-            query: Dict[Any, Any] = merge_queries(list(queries.values()))  # type: ignore
+            query: dict[Any, Any] = merge_queries(list(queries.values()))  # type: ignore
 
             if self.hint_scheme is not None:  # pragma: no cover
                 hints = self.hint_scheme.generate_hints(query)
@@ -239,7 +246,6 @@ class ReadOnlyResource(Resource):
                         )  # type: ignore
 
                         pipeline = generate_query_pipeline(query, self.store)
-
                         agg_kwargs = {}
 
                         if query.get("agg_hint"):

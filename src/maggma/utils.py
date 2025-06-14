@@ -1,13 +1,15 @@
 """
 Utilities to help with maggma functions.
 """
+
 import itertools
 import logging
 import signal
 import uuid
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 from importlib import import_module
-from typing import Dict, Iterable, Optional, Set, Union
+from typing import Optional, Union
 
 from bson.json_util import ObjectId
 from dateutil import parser
@@ -88,7 +90,6 @@ def to_isoformat_ceil_ms(dt: Union[datetime, str]) -> str:
 
 def to_dt(s: Union[datetime, str]) -> datetime:
     """Convert an ISO 8601 string to a datetime."""
-
     if isinstance(s, str):
         return parser.parse(s)
     if isinstance(s, datetime):
@@ -103,7 +104,7 @@ def to_dt(s: Union[datetime, str]) -> datetime:
 LU_KEY_ISOFORMAT = (to_dt, to_isoformat_ceil_ms)
 
 
-def recursive_update(d: Dict, u: Dict):
+def recursive_update(d: dict, u: dict):
     """
     Recursive updates d with values from u.
 
@@ -111,7 +112,6 @@ def recursive_update(d: Dict, u: Dict):
         d (dict): dict to update
         u (dict): updates to propagate
     """
-
     for k, v in u.items():
         if k in d:
             if isinstance(v, dict) and isinstance(d[k], dict):
@@ -135,7 +135,7 @@ def grouper(iterable: Iterable, n: int) -> Iterable:
     return iter(lambda: list(itertools.islice(iterable, n)), [])
 
 
-def lazy_substitute(d: Dict, aliases: Dict):
+def lazy_substitute(d: dict, aliases: dict):
     """
     Simple top level substitute that doesn't dive into mongo like strings.
     """
@@ -145,7 +145,7 @@ def lazy_substitute(d: Dict, aliases: Dict):
             del d[key]
 
 
-def substitute(d: Dict, aliases: Dict):
+def substitute(d: dict, aliases: dict):
     """
     Substitutes keys in dictionary
     Accepts multilevel mongo like keys.
@@ -156,7 +156,7 @@ def substitute(d: Dict, aliases: Dict):
             unset(d, key)
 
 
-def unset(d: Dict, key: str):
+def unset(d: dict, key: str):
     """
     Unsets a key.
     """
@@ -211,7 +211,6 @@ def dynamic_import(abs_module_path: str, class_name: Optional[str] = None):
     """
     Dynamic class importer from: https://www.bnmetrics.com/blog/dynamic-import-in-python3.
     """
-
     if class_name is None:
         class_name = abs_module_path.split(".")[-1]
         abs_module_path = ".".join(abs_module_path.split(".")[:-1])
@@ -265,7 +264,7 @@ class ReportingHandler(logging.Handler):
             self.reporting_store.update(maggma_record, key="_id")
 
 
-def get_flat_models_from_model(model: BaseModel, known_models: Optional[Set[BaseModel]] = None):
+def get_flat_models_from_model(model: BaseModel, known_models: Optional[set[BaseModel]] = None):
     """Get all sub-models from a pydantic model.
 
     Args:

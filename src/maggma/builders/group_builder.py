@@ -1,12 +1,14 @@
 """
 Many-to-Many GroupBuilder.
 """
+
 import traceback
 from abc import ABCMeta, abstractmethod
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from math import ceil
 from time import time
-from typing import Dict, Iterable, Iterator, List, Optional, Set, Tuple
+from typing import Optional
 
 from pydash import get
 
@@ -28,9 +30,9 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         self,
         source: Store,
         target: Store,
-        grouping_keys: List[str],
-        query: Optional[Dict] = None,
-        projection: Optional[List] = None,
+        grouping_keys: list[str],
+        query: Optional[dict] = None,
+        projection: Optional[list] = None,
         timeout: int = 0,
         store_process_time: bool = True,
         retry_failed: bool = False,
@@ -40,7 +42,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         Args:
             source: source store
             target: target store
-            query: optional query to filter source store
+            query: optional query to filter items from the source store.
             projection: list of keys to project from the source for
                 processing. Limits data transfer to improve efficiency.
             delete_orphans: Whether to delete documents on target store
@@ -55,7 +57,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         self.source = source
         self.target = target
         self.grouping_keys = grouping_keys
-        self.query = query
+        self.query = query if query else {}
         self.projection = projection
         self.kwargs = kwargs
         self.timeout = timeout
@@ -89,7 +91,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
                 "for each of source and target."
             )
 
-    def prechunk(self, number_splits: int) -> Iterator[Dict]:
+    def prechunk(self, number_splits: int) -> Iterator[dict]:
         """
         Generic prechunk for group builder to perform domain-decomposition
         by the grouping keys.
@@ -117,10 +119,11 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
 
         self.total = len(groups)
         for group in groups:
-            docs = list(self.source.query(criteria=dict(zip(self.grouping_keys, group)), properties=projection))
-            yield docs
+            group_criteria = dict(zip(self.grouping_keys, group))
+            group_criteria.update(self.query)
+            yield list(self.source.query(criteria=group_criteria, properties=projection))
 
-    def process_item(self, item: List[Dict]) -> Dict[Tuple, Dict]:  # type: ignore
+    def process_item(self, item: list[dict]) -> dict[tuple, dict]:  # type: ignore
         keys = [d[self.source.key] for d in item]
 
         self.logger.debug(f"Processing: {keys}")
@@ -152,7 +155,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
 
         return processed
 
-    def update_targets(self, items: List[Dict]):
+    def update_targets(self, items: list[dict]):
         """
         Generic update targets for Group Builder.
         """
@@ -165,7 +168,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
             target.update(items)
 
     @abstractmethod
-    def unary_function(self, items: List[Dict]) -> Dict:
+    def unary_function(self, items: list[dict]) -> dict:
         """
         Processing function for GroupBuilder.
 
@@ -182,10 +185,7 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
         """
         Gets the IDs that need to be processed.
         """
-
-        query = self.query or {}
-
-        distinct_from_target = list(self.target.distinct(self._target_keys_field, criteria=query))
+        distinct_from_target = list(self.target.distinct(self._target_keys_field, criteria=self.query))
         processed_ids = []
         # Not always guaranteed that MongoDB will unpack the list so we
         # have to make sure we do that
@@ -195,11 +195,11 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
             else:
                 processed_ids.append(d)
 
-        all_ids = set(self.source.distinct(self.source.key, criteria=query))
+        all_ids = set(self.source.distinct(self.source.key, criteria=self.query))
         self.logger.debug(f"Found {len(all_ids)} total docs in source")
 
         if self.retry_failed:
-            failed_keys = self.target.distinct(self._target_keys_field, criteria={"state": "failed", **query})
+            failed_keys = self.target.distinct(self._target_keys_field, criteria={"state": "failed", **self.query})
             unprocessed_ids = all_ids - (set(processed_ids) - set(failed_keys))
             self.logger.debug(f"Found {len(failed_keys)} failed IDs in target")
         else:
@@ -207,19 +207,18 @@ class GroupBuilder(Builder, metaclass=ABCMeta):
 
         self.logger.info(f"Found {len(unprocessed_ids)} IDs to process")
 
-        new_ids = set(self.source.newer_in(self.target, criteria=query, exhaustive=False))
+        new_ids = set(self.source.newer_in(self.target, criteria=self.query, exhaustive=False))
 
         self.logger.info(f"Found {len(new_ids)} updated IDs to process")
         return list(new_ids | unprocessed_ids)
 
-    def get_groups_from_keys(self, keys) -> Set[Tuple]:
+    def get_groups_from_keys(self, keys) -> set[tuple]:
         """
         Get the groups by grouping_keys for these documents.
         """
-
         grouping_keys = self.grouping_keys
 
-        groups: Set[Tuple] = set()
+        groups: set[tuple] = set()
 
         for chunked_keys in grouper(keys, self.chunk_size):
             docs = list(

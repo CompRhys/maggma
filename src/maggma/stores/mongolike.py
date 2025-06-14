@@ -6,19 +6,10 @@ various utilities.
 
 import warnings
 from datetime import datetime
+from collections.abc import Iterator
 from itertools import chain, groupby
 from pathlib import Path
-
-from ruamel.yaml import YAML
-
-from maggma.stores.ssh_tunnel import SSHTunnel
-
-try:
-    from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple, Union
-except ImportError:
-    from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
-
-    from typing_extensions import Literal
+from typing import Any, Callable, Literal, Optional, Union
 
 import bson
 import orjson
@@ -30,8 +21,10 @@ from pydash import get, has, set_
 from pymongo import MongoClient, ReplaceOne, uri_parser
 from pymongo.errors import ConfigurationError, DocumentTooLarge, OperationFailure
 from pymongo_inmemory import MongoClient as MemoryClient
+from ruamel.yaml import YAML
 
 from maggma.core import Sort, Store, StoreError
+from maggma.stores.ssh_tunnel import SSHTunnel
 from maggma.utils import confirm_field_index, to_dt
 
 try:
@@ -56,8 +49,8 @@ class MongoStore(Store):
         ssh_tunnel: Optional[SSHTunnel] = None,
         safe_update: bool = False,
         auth_source: Optional[str] = None,
-        mongoclient_kwargs: Optional[Dict] = None,
-        default_sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        mongoclient_kwargs: Optional[dict] = None,
+        default_sort: Optional[dict[str, Union[Sort, int]]] = None,
         **kwargs,
     ):
         """
@@ -171,7 +164,7 @@ class MongoStore(Store):
 
         return cls(**db_creds, **kwargs)
 
-    def distinct(self, field: str, criteria: Optional[Dict] = None, all_exist: bool = False) -> List:
+    def distinct(self, field: str, criteria: Optional[dict] = None, all_exist: bool = False) -> list:
         """
         Get all distinct values for a field.
 
@@ -179,7 +172,6 @@ class MongoStore(Store):
             field: the field(s) to get distinct values for
             criteria: PyMongo filter for documents to search in
         """
-
         criteria = criteria or {}
         try:
             distinct_vals = self._collection.distinct(field, criteria)
@@ -194,13 +186,13 @@ class MongoStore(Store):
 
     def groupby(
         self,
-        keys: Union[List[str], str],
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        keys: Union[list[str], str],
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Tuple[Dict, List[Dict]]]:
+    ) -> Iterator[tuple[dict, list[dict]]]:
         """
         Simple grouping function that will group documents
         by keys.
@@ -269,8 +261,8 @@ class MongoStore(Store):
 
     def count(
         self,
-        criteria: Optional[Dict] = None,
-        hint: Optional[Dict[str, Union[Sort, int]]] = None,
+        criteria: Optional[dict] = None,
+        hint: Optional[dict[str, Union[Sort, int]]] = None,
     ) -> int:
         """
         Counts the number of documents matching the query criteria.
@@ -280,7 +272,6 @@ class MongoStore(Store):
             hint: Dictionary of indexes to use as hints for query optimizer.
                 Keys are field names and values are 1 for ascending or -1 for descending.
         """
-
         criteria = criteria if criteria else {}
 
         hint_list = (
@@ -298,14 +289,14 @@ class MongoStore(Store):
 
     def query(  # type: ignore
         self,
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
-        hint: Optional[Dict[str, Union[Sort, int]]] = None,
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
+        hint: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
         **kwargs,
-    ) -> Iterator[Dict]:
+    ) -> Iterator[dict]:
         """
         Queries the Store for a set of documents.
 
@@ -361,7 +352,6 @@ class MongoStore(Store):
         Returns:
             bool indicating if the index exists/was created
         """
-
         if confirm_field_index(self._collection, key):
             return True
 
@@ -371,7 +361,7 @@ class MongoStore(Store):
         except Exception:
             return False
 
-    def update(self, docs: Union[List[Dict], Dict], key: Union[List, str, None] = None):
+    def update(self, docs: Union[list[dict], dict], key: Union[list, str, None] = None):
         """
         Update documents into the Store.
 
@@ -382,7 +372,6 @@ class MongoStore(Store):
                  a single field, or None if the Store's key
                  field is to be used
         """
-
         requests = []
 
         if not isinstance(docs, list):
@@ -419,7 +408,7 @@ class MongoStore(Store):
                 else:
                     raise e
 
-    def remove_docs(self, criteria: Dict):
+    def remove_docs(self, criteria: dict):
         """
         Remove docs matching the query dictionary.
 
@@ -460,8 +449,9 @@ class MongoURIStore(MongoStore):
         collection_name: str,
         database: Optional[str] = None,
         ssh_tunnel: Optional[SSHTunnel] = None,
-        mongoclient_kwargs: Optional[Dict] = None,
-        default_sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        safe_update: bool = False,
+        mongoclient_kwargs: Optional[dict] = None,
+        default_sort: Optional[dict[str, Union[Sort, int]]] = None,
         **kwargs,
     ):
         """
@@ -473,8 +463,11 @@ class MongoURIStore(MongoStore):
                 ensure determinacy in query results.
         """
         self.uri = uri
-        self.ssh_tunnel = ssh_tunnel
+        if ssh_tunnel:
+            raise ValueError(f"At the moment ssh_tunnel is not supported for {self.__class__.__name__}")
+        self.ssh_tunnel = None
         self.default_sort = default_sort
+        self.safe_update = safe_update
         self.mongoclient_kwargs = mongoclient_kwargs or {}
 
         # parse the dbname from the uri
@@ -581,6 +574,66 @@ class MemoryStore(MongoStore):
     #     if self._coll is not None:
     #         self._collection.drop()
 
+    def __hash__(self):
+        """Hash for the store."""
+        return hash((self.name, self.last_updated_field))
+
+    def groupby(
+        self,
+        keys: Union[list[str], str],
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
+        skip: int = 0,
+        limit: int = 0,
+    ) -> Iterator[tuple[dict, list[dict]]]:
+        """
+        Simple grouping function that will group documents
+        by keys.
+
+        Args:
+            keys: fields to group documents
+            criteria: PyMongo filter for documents to search in
+            properties: properties to return in grouped documents
+            sort: Dictionary of sort order for fields. Keys are field names and
+                values are 1 for ascending or -1 for descending.
+            skip: number documents to skip
+            limit: limit on total number of documents returned
+
+        Returns:
+            generator returning tuples of (key, list of elements)
+        """
+        keys = keys if isinstance(keys, list) else [keys]
+
+        if properties is None:
+            properties = []
+        if isinstance(properties, dict):
+            properties = list(properties.keys())
+
+        data = [
+            doc for doc in self.query(properties=keys + properties, criteria=criteria) if all(has(doc, k) for k in keys)
+        ]
+
+        def grouping_keys(doc):
+            return tuple(get(doc, k) for k in keys)
+
+        for vals, group in groupby(sorted(data, key=grouping_keys), key=grouping_keys):
+            doc = {}  # type: ignore
+            for k, v in zip(keys, vals):
+                set_(doc, k, v)
+            yield doc, list(group)
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check equality for MemoryStore
+        other: other MemoryStore to compare with.
+        """
+        if not isinstance(other, MemoryStore):
+            return False
+
+        fields = ["collection_name", "last_updated_field"]
+        return all(getattr(self, f) == getattr(other, f) for f in fields)
+
 
 class JSONStore(MemoryStore):
     """
@@ -589,7 +642,7 @@ class JSONStore(MemoryStore):
 
     def __init__(
         self,
-        paths: Union[str, List[str]],
+        paths: Union[str, list[str]],
         read_only: bool = True,
         serialization_option: Optional[int] = None,
         serialization_default: Optional[Callable[[Any], Any]] = None,
@@ -666,8 +719,8 @@ class JSONStore(MemoryStore):
 
             # create the .json file if it does not exist
             if not self.read_only and not Path(self.paths[0]).exists():
-                with zopen(self.paths[0], "w", encoding=self.encoding) as f:
-                    data: List[dict] = []
+                with zopen(self.paths[0], mode="wt", encoding=self.encoding) as f:
+                    data: list[dict] = []
                     bytesdata = orjson.dumps(data)
                     f.write(bytesdata.decode("utf-8"))
 
@@ -685,7 +738,7 @@ class JSONStore(MemoryStore):
                         """
                     )
 
-    def read_json_file(self, path) -> List:
+    def read_json_file(self, path) -> list:
         """
         Helper method to read the contents of a JSON file and generate
         a list of docs.
@@ -693,7 +746,7 @@ class JSONStore(MemoryStore):
         Args:
             path: Path to the JSON file to be read
         """
-        with zopen(path) as f:
+        with zopen(path, mode="rt", encoding=self.encoding) as f:
             data = f.read()
             data = data.decode() if isinstance(data, bytes) else data
             objects = bson.json_util.loads(data) if "$oid" in data else orjson.loads(data)
@@ -709,7 +762,7 @@ class JSONStore(MemoryStore):
 
         return objects
 
-    def update(self, docs: Union[List[Dict], Dict], key: Union[List, str, None] = None):
+    def update(self, docs: Union[list[dict], dict], key: Union[list, str, None] = None):
         """
         Update documents into the Store.
 
@@ -726,7 +779,7 @@ class JSONStore(MemoryStore):
         if not self.read_only:
             self.update_json_file()
 
-    def remove_docs(self, criteria: Dict):
+    def remove_docs(self, criteria: dict):
         """
         Remove docs matching the query dictionary.
 
@@ -743,7 +796,7 @@ class JSONStore(MemoryStore):
         """
         Updates the json file when a write-like operation is performed.
         """
-        with zopen(self.paths[0], "w", encoding=self.encoding) as f:
+        with zopen(self.paths[0], mode="wt", encoding=self.encoding) as f:
             data = list(self.query())
             for d in data:
                 d.pop("_id")
@@ -864,8 +917,8 @@ class MontyStore(MongoStore):
 
     def count(
         self,
-        criteria: Optional[Dict] = None,
-        hint: Optional[Dict[str, Union[Sort, int]]] = None,
+        criteria: Optional[dict] = None,
+        hint: Optional[dict[str, Union[Sort, int]]] = None,
     ) -> int:
         """
         Counts the number of documents matching the query criteria.
@@ -886,7 +939,7 @@ class MontyStore(MongoStore):
 
         return self._collection.count_documents(filter=criteria)
 
-    def update(self, docs: Union[List[Dict], Dict], key: Union[List, str, None] = None):
+    def update(self, docs: Union[list[dict], dict], key: Union[list, str, None] = None):
         """
         Update documents into the Store.
 
@@ -896,7 +949,6 @@ class MontyStore(MongoStore):
                 multiple fields, a single field, or None if the Store's key field is to be
                 used.
         """
-
         if not isinstance(docs, list):
             docs = [docs]
 

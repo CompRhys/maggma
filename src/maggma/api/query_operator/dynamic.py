@@ -1,6 +1,6 @@
 import inspect
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Optional, Union
 
 from fastapi.params import Query
 from monty.json import MontyDecoder
@@ -17,15 +17,15 @@ class DynamicQueryOperator(QueryOperator):
 
     def __init__(
         self,
-        model: Type[BaseModel],
-        fields: Optional[List[str]] = None,
-        excluded_fields: Optional[List[str]] = None,
+        model: type[BaseModel],
+        fields: Optional[list[str]] = None,
+        excluded_fields: Optional[list[str]] = None,
     ):
         self.model = model
         self.fields = fields
         self.excluded_fields = excluded_fields
 
-        all_fields: Dict[str, FieldInfo] = model.model_fields
+        all_fields: dict[str, FieldInfo] = model.model_fields
         param_fields = fields or list(set(all_fields.keys()) - set(excluded_fields or []))
 
         # Convert the fields into operator tuples
@@ -60,7 +60,7 @@ class DynamicQueryOperator(QueryOperator):
             return {"criteria": final_crit}
 
         # building the signatures for FastAPI Swagger UI
-        signatures: List = [
+        signatures: list = [
             inspect.Parameter(
                 op[0],
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
@@ -75,10 +75,10 @@ class DynamicQueryOperator(QueryOperator):
         self.query = query  # type: ignore
 
     def query(self):
-        "Stub query function for abstract class."
+        """Stub query function for abstract class."""
 
     @abstractmethod
-    def field_to_operator(self, name: str, field: FieldInfo) -> List[Tuple[str, Any, Query, Callable[..., Dict]]]:
+    def field_to_operator(self, name: str, field: FieldInfo) -> list[tuple[str, Any, Query, Callable[..., dict]]]:
         """
         Converts a PyDantic FieldInfo into a Tuple with the
             - query param name,
@@ -95,7 +95,7 @@ class DynamicQueryOperator(QueryOperator):
         decoder = MontyDecoder()
         return cls(**{k: decoder.process_decoded(v) for k, v in d.items()})
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> dict:
         """
         Special as_dict implemented to convert pydantic models into strings.
         """
@@ -105,9 +105,9 @@ class DynamicQueryOperator(QueryOperator):
 
 
 class NumericQuery(DynamicQueryOperator):
-    "Query Operator to enable searching on numeric fields."
+    """Query Operator to enable searching on numeric fields."""
 
-    def field_to_operator(self, name: str, field: FieldInfo) -> List[Tuple[str, Any, Query, Callable[..., Dict]]]:
+    def field_to_operator(self, name: str, field: FieldInfo) -> list[tuple[str, Any, Query, Callable[..., dict]]]:
         """
         Converts a PyDantic FieldInfo into a Tuple with the
         query_param name,
@@ -115,7 +115,6 @@ class NumericQuery(DynamicQueryOperator):
         Query object,
         and callable to convert it into a query dict.
         """
-
         ops = []
         field_type = field.annotation
 
@@ -190,9 +189,9 @@ class NumericQuery(DynamicQueryOperator):
 
 
 class StringQueryOperator(DynamicQueryOperator):
-    "Query Operator to enable searching on numeric fields."
+    """Query Operator to enable searching on numeric fields."""
 
-    def field_to_operator(self, name: str, field: FieldInfo) -> List[Tuple[str, Any, Query, Callable[..., Dict]]]:
+    def field_to_operator(self, name: str, field: FieldInfo) -> list[tuple[str, Any, Query, Callable[..., dict]]]:
         """
         Converts a PyDantic FieldInfo into a Tuple with the
         query_param name,
@@ -200,7 +199,6 @@ class StringQueryOperator(DynamicQueryOperator):
         Query object,
         and callable to convert it into a query dict.
         """
-
         ops = []
         field_type: type = field.annotation
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Optional
 
 import orjson
 from botocore.exceptions import ClientError
@@ -22,7 +22,7 @@ class S3URLResource(Resource):
         self,
         store: S3Store,
         url_lifetime: int,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         header_processor: Optional[HeaderProcessor] = None,
         disable_validation: bool = False,
         include_in_schema: Optional[bool] = True,
@@ -56,7 +56,6 @@ class S3URLResource(Resource):
         Internal method to prepare the endpoint by setting up default handlers
         for routes.
         """
-
         self.build_get_by_key()
 
     def build_get_by_key(self):

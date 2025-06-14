@@ -4,7 +4,7 @@
 
 A `Builder` is a class that inherits from `maggma.core.Builder` and implement 3 methods:
 
-* `get_items`:  This method should return some iterable of items to run through `process_items`
+* `get_items`:  This method should return some iterable of items to run through `process_item`
 * `process_item`: This method should take a single item, process it, and return the processed item
 * `update_targets`: This method should take a list of processed items and update the target stores.
 
@@ -112,11 +112,11 @@ One advantage of using the generator approach is it is less memory intensive tha
 
 `process_item` just has to do the parallelizable work on each item. Since the item is whatever comes out of `get_items`, you know exactly what it should be. It may be a single document, a list of documents, a mapping, a set, etc.
 
-Our simple process item just has to multiply one field by `self.mulitplier`:
+Our simple process item just has to multiply one field by `self.multiplier`:
 
 ``` python
 
-    def process_items(self, item : Dict) -> Dict:
+    def process_item(self, item : Dict) -> Dict:
         """
         Multiplies the "a" sub-document by self.multiplier
         """
@@ -141,8 +141,8 @@ Finally, we have to put the processed item in to the target store:
 
 
 !!! note
-    Note that whatever `process_items` returns, `update_targets` takes a `List` of these:
-    For instance, if `process_items` returns `str`, then `update_targets` would look like:
+    Note that whatever `process_item` returns, `update_targets` takes a `List` of these:
+    For instance, if `process_item` returns `str`, then `update_targets` would look like:
     ``` python
 
         def update_target(self,items: List[str]):
@@ -183,7 +183,7 @@ class MultiplyBuilder(Builder):
         """
         docs = list(self.source.query())
 
-    def process_items(self, item : Dict) -> Dict:
+    def process_item(self, item : Dict) -> Dict:
         """
         Multiplies the "a" sub-document by self.multiplier
         """

@@ -1,5 +1,3 @@
-from typing import Dict
-
 from fastapi import HTTPException, Query
 
 from maggma.api.query_operator import QueryOperator
@@ -15,7 +13,6 @@ class PaginationQuery(QueryOperator):
             default_limit: the default number of documents to return
             max_limit: max number of documents to return.
         """
-
         self.default_limit = default_limit
         self.max_limit = max_limit
 
@@ -41,7 +38,6 @@ class PaginationQuery(QueryOperator):
             """
             Pagination parameters for the API Endpoint.
             """
-
             if _page is not None:
                 if _per_page > max_limit:
                     raise HTTPException(
@@ -80,9 +76,9 @@ class PaginationQuery(QueryOperator):
         self.query = query  # type: ignore
 
     def query(self):
-        "Stub query function for abstract class."
+        """Stub query function for abstract class."""
 
-    def meta(self) -> Dict:
+    def meta(self) -> dict:
         """
         Metadata for the pagination params.
         """

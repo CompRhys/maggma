@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field, validator
 
@@ -12,7 +12,6 @@ DataT = TypeVar("DataT")
 
 
 class Meta(BaseModel):
-
     """
     Meta information for the MAPI Response.
     """
@@ -28,6 +27,11 @@ class Meta(BaseModel):
     )
 
     total_doc: Optional[int] = Field(None, description="the total number of documents available for this query", ge=0)
+
+    facet: Optional[dict] = Field(
+        None,
+        description="a dictionary containing the facets available for this query",
+    )
 
     class Config:
         extra = "allow"
@@ -51,8 +55,8 @@ class Response(BaseModel, Generic[DataT]):
     A Generic API Response.
     """
 
-    data: Optional[List[DataT]] = Field(None, description="List of returned data")
-    errors: Optional[List[Error]] = Field(None, description="Any errors on processing this query")
+    data: Optional[list[DataT]] = Field(None, description="List of returned data")
+    errors: Optional[list[Error]] = Field(None, description="Any errors on processing this query")
     meta: Optional[Meta] = Field(None, description="Extra information for the query")
 
     @validator("errors", always=True)
@@ -76,7 +80,6 @@ class Response(BaseModel, Generic[DataT]):
 
 
 class S3URLDoc(BaseModel):
-
     """
     S3 pre-signed URL data returned by the S3 URL resource.
     """

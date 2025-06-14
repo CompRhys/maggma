@@ -1,12 +1,14 @@
 """
 One-to-One Map Builder and a simple CopyBuilder implementation.
 """
+
 import traceback
 from abc import ABCMeta, abstractmethod
+from collections.abc import Iterator
 from datetime import datetime
 from math import ceil
 from time import time
-from typing import Dict, Iterator, List, Optional
+from typing import Optional
 
 from maggma.core import Builder, Store
 from maggma.utils import Timeout, grouper
@@ -26,8 +28,8 @@ class MapBuilder(Builder, metaclass=ABCMeta):
         self,
         source: Store,
         target: Store,
-        query: Optional[Dict] = None,
-        projection: Optional[List] = None,
+        query: Optional[dict] = None,
+        projection: Optional[list] = None,
         delete_orphans: bool = False,
         timeout: int = 0,
         store_process_time: bool = True,
@@ -84,7 +86,7 @@ class MapBuilder(Builder, metaclass=ABCMeta):
                 "for each of source and target."
             )
 
-    def prechunk(self, number_splits: int) -> Iterator[Dict]:
+    def prechunk(self, number_splits: int) -> Iterator[dict]:
         """
         Generic prechunk for map builder to perform domain-decomposition
         by the key field.
@@ -101,7 +103,6 @@ class MapBuilder(Builder, metaclass=ABCMeta):
         Generic get items for Map Builder designed to perform
         incremental building.
         """
-
         self.logger.info(f"Starting {self.__class__.__name__} Builder")
 
         self.ensure_indexes()
@@ -125,20 +126,18 @@ class MapBuilder(Builder, metaclass=ABCMeta):
         self.total = len(keys)
         for chunked_keys in grouper(keys, self.chunk_size):
             chunked_keys = list(chunked_keys)
-            for doc in list(
+            yield from list(
                 self.source.query(
                     criteria={self.source.key: {"$in": chunked_keys}},
                     properties=projection,
                 )
-            ):
-                yield doc
+            )
 
-    def process_item(self, item: Dict):
+    def process_item(self, item: dict):
         """
         Generic process items to process a dictionary using
         a map function.
         """
-
         self.logger.debug(f"Processing: {item[self.source.key]}")
 
         time_start = time()
@@ -171,7 +170,7 @@ class MapBuilder(Builder, metaclass=ABCMeta):
         out.update(processed)
         return out
 
-    def update_targets(self, items: List[Dict]):
+    def update_targets(self, items: list[dict]):
         """
         Generic update targets for Map Builder.
         """

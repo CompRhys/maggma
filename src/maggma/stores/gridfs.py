@@ -7,8 +7,9 @@ various utilities.
 import copy
 import json
 import zlib
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import gridfs
 from monty.json import jsanitize
@@ -52,9 +53,9 @@ class GridFSStore(Store):
         password: str = "",
         compression: bool = False,
         ensure_metadata: bool = False,
-        searchable_fields: Optional[List[str]] = None,
+        searchable_fields: Optional[list[str]] = None,
         auth_source: Optional[str] = None,
-        mongoclient_kwargs: Optional[Dict] = None,
+        mongoclient_kwargs: Optional[dict] = None,
         ssh_tunnel: Optional[SSHTunnel] = None,
         **kwargs,
     ):
@@ -74,7 +75,6 @@ class GridFSStore(Store):
             auth_source: The database to authenticate on. Defaults to the database name.
             ssh_tunnel: An SSHTunnel object to use.
         """
-
         self.database = database
         self.collection_name = collection_name
         self.host = host
@@ -87,6 +87,7 @@ class GridFSStore(Store):
         self.searchable_fields = [] if searchable_fields is None else searchable_fields
         self.kwargs = kwargs
         self.ssh_tunnel = ssh_tunnel
+        self._fs = None
 
         if auth_source is None:
             auth_source = self.database
@@ -157,9 +158,9 @@ class GridFSStore(Store):
             db = conn[self.database]
             self._coll = gridfs.GridFS(db, self.collection_name)
             self._files_collection = db[f"{self.collection_name}.files"]
-            self._files_store = MongoStore.from_collection(self._files_collection)
-            self._files_store.last_updated_field = f"metadata.{self.last_updated_field}"
-            self._files_store.key = self.key
+            self._fs = MongoStore.from_collection(self._files_collection)
+            self._fs.last_updated_field = f"metadata.{self.last_updated_field}"
+            self._fs.key = self.key
             self._chunks_collection = db[f"{self.collection_name}.chunks"]
 
     @property
@@ -170,6 +171,13 @@ class GridFSStore(Store):
         return self._coll
 
     @property
+    def _files_store(self):
+        """Property referring to MongoStore associated to the files_collection."""
+        if self._fs is None:
+            raise StoreError("Must connect Mongo-like store before attempting to use it")
+        return self._fs
+
+    @property
     def last_updated(self) -> datetime:
         """
         Provides the most recent last_updated date time stamp from
@@ -178,7 +186,7 @@ class GridFSStore(Store):
         return self._files_store.last_updated
 
     @classmethod
-    def transform_criteria(cls, criteria: Dict) -> Dict:
+    def transform_criteria(cls, criteria: dict) -> dict:
         """
         Allow client to not need to prepend 'metadata.' to query fields.
 
@@ -194,7 +202,7 @@ class GridFSStore(Store):
 
         return new_criteria
 
-    def count(self, criteria: Optional[Dict] = None) -> int:
+    def count(self, criteria: Optional[dict] = None) -> int:
         """
         Counts the number of documents matching the query criteria.
 
@@ -208,12 +216,12 @@ class GridFSStore(Store):
 
     def query(
         self,
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Dict]:
+    ) -> Iterator[dict]:
         """
         Queries the GridFS Store for a set of documents.
         Will check to see if data can be returned from
@@ -272,7 +280,7 @@ class GridFSStore(Store):
 
                 yield data
 
-    def distinct(self, field: str, criteria: Optional[Dict] = None, all_exist: bool = False) -> List:
+    def distinct(self, field: str, criteria: Optional[dict] = None, all_exist: bool = False) -> list:
         """
         Get all distinct values for a field. This function only operates
         on the metadata in the files collection.
@@ -291,13 +299,13 @@ class GridFSStore(Store):
 
     def groupby(
         self,
-        keys: Union[List[str], str],
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        keys: Union[list[str], str],
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Tuple[Dict, List[Dict]]]:
+    ) -> Iterator[tuple[dict, list[dict]]]:
         """
         Simple grouping function that will group documents
         by keys. Will only work if the keys are included in the files
@@ -315,7 +323,6 @@ class GridFSStore(Store):
         Returns:
             generator returning tuples of (dict, list of docs)
         """
-
         criteria = self.transform_criteria(criteria) if isinstance(criteria, dict) else criteria
         keys = [keys] if not isinstance(keys, list) else keys
         keys = [
@@ -347,9 +354,9 @@ class GridFSStore(Store):
 
     def update(
         self,
-        docs: Union[List[Dict], Dict],
-        key: Union[List, str, None] = None,
-        additional_metadata: Union[str, List[str], None] = None,
+        docs: Union[list[dict], dict],
+        key: Union[list, str, None] = None,
+        additional_metadata: Union[str, list[str], None] = None,
     ):
         """
         Update documents into the Store.
@@ -362,7 +369,6 @@ class GridFSStore(Store):
                  field is to be used
             additional_metadata: field(s) to include in the gridfs metadata
         """
-
         if not isinstance(docs, list):
             docs = [docs]
 
@@ -401,7 +407,7 @@ class GridFSStore(Store):
             for fdoc in self._files_collection.find(search_doc, ["_id"]).sort("uploadDate", -1).skip(1):
                 self._collection.delete(fdoc["_id"])
 
-    def remove_docs(self, criteria: Dict):
+    def remove_docs(self, criteria: dict):
         """
         Remove docs matching the query dictionary.
 
@@ -448,8 +454,9 @@ class GridFSURIStore(GridFSStore):
         database: Optional[str] = None,
         compression: bool = False,
         ensure_metadata: bool = False,
-        searchable_fields: Optional[List[str]] = None,
-        mongoclient_kwargs: Optional[Dict] = None,
+        searchable_fields: Optional[list[str]] = None,
+        mongoclient_kwargs: Optional[dict] = None,
+        ssh_tunnel: Optional[SSHTunnel] = None,
         **kwargs,
     ):
         """
@@ -463,8 +470,11 @@ class GridFSURIStore(GridFSStore):
             ensure_metadata: ensure returned documents have the metadata fields
             searchable_fields: fields to keep in the index store.
         """
-
         self.uri = uri
+
+        if ssh_tunnel:
+            raise ValueError(f"At the moment ssh_tunnel is not supported for {self.__class__.__name__}")
+        self.ssh_tunnel = None
 
         # parse the dbname from the uri
         if database is None:
@@ -482,6 +492,7 @@ class GridFSURIStore(GridFSStore):
         self.searchable_fields = [] if searchable_fields is None else searchable_fields
         self.kwargs = kwargs
         self.mongoclient_kwargs = mongoclient_kwargs or {}
+        self._fs = None
 
         if "key" not in kwargs:
             kwargs["key"] = "_id"
@@ -500,7 +511,26 @@ class GridFSURIStore(GridFSStore):
             db = conn[self.database]
             self._coll = gridfs.GridFS(db, self.collection_name)
             self._files_collection = db[f"{self.collection_name}.files"]
-            self._files_store = MongoStore.from_collection(self._files_collection)
-            self._files_store.last_updated_field = f"metadata.{self.last_updated_field}"
-            self._files_store.key = self.key
+            self._fs = MongoStore.from_collection(self._files_collection)
+            self._fs.last_updated_field = f"metadata.{self.last_updated_field}"
+            self._fs.key = self.key
             self._chunks_collection = db[f"{self.collection_name}.chunks"]
+
+    @property
+    def name(self) -> str:
+        """
+        Return a string representing this data source.
+        """
+        # TODO: This is not very safe since it exposes the username/password info
+        return self.uri
+
+    def __eq__(self, other: object) -> bool:
+        """
+        Check equality for GridFSURIStore
+        other: other GridFSURIStore to compare with.
+        """
+        if not isinstance(other, GridFSStore):
+            return False
+
+        fields = ["uri", "database", "collection_name"]
+        return all(getattr(self, f) == getattr(other, f) for f in fields)

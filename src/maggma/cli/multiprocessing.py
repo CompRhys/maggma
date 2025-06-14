@@ -5,7 +5,7 @@ from asyncio import BoundedSemaphore, Queue, gather, get_event_loop
 from concurrent.futures import ProcessPoolExecutor
 from logging import getLogger
 from types import GeneratorType
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from aioitertools import enumerate
 from tqdm.auto import tqdm
@@ -85,8 +85,9 @@ class AsyncUnorderedMap:
             future = loop.run_in_executor(self.executor, safe_dispatch, (self.func, item))
 
             self.tasks[idx] = future
-
-            loop.create_task(self.process_and_release(idx))
+            # TODO - line below raises RUF006 error. Unsure about the best way to
+            # resolve. See https://docs.astral.sh/ruff/rules/asyncio-dangling-task/
+            loop.create_task(self.process_and_release(idx))  # noqa: RUF006
 
         await gather(*self.tasks.values())
         self.results.put_nowait(self.done_sentinel)
@@ -150,7 +151,7 @@ async def multi(
     num_processes,
     no_bars=False,
     heartbeat_func: Optional[Callable[..., Any]] = None,
-    heartbeat_func_kwargs: Optional[Dict[Any, Any]] = None,
+    heartbeat_func_kwargs: Optional[dict[Any, Any]] = None,
 ):
     builder.connect()
     cursor = builder.get_items()

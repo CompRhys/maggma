@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import Query
 from fastapi.exceptions import HTTPException
@@ -10,7 +10,7 @@ from maggma.api.utils import STORE_PARAMS
 class SortQuery(QueryOperator):
     """Method to generate the sorting portion of a query."""
 
-    def __init__(self, fields: Optional[List[str]] = None, max_num: Optional[int] = None):
+    def __init__(self, fields: Optional[list[str]] = None, max_num: Optional[int] = None):
         """Sort query configuration.
 
         Args:
@@ -42,12 +42,15 @@ class SortQuery(QueryOperator):
                 )
 
             for sort_field in field_list:
+                query_entry = {sort_field: 1}
+
+                if sort_field.startswith("-"):
+                    query_entry = {sort_field[1:]: -1}
+                    sort_field = sort_field[1:]
+
                 if self.fields and sort_field not in self.fields:
                     continue
 
-                if sort_field[0] == "-":
-                    sort.update({sort_field[1:]: -1})
-                else:
-                    sort.update({sort_field: 1})
+                sort.update(query_entry)
 
         return {"sort": sort}
