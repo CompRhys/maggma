@@ -6,7 +6,7 @@ import pytest
 from maggma.cli.multiprocessing import AsyncUnorderedMap, BackPressure, grouper, safe_dispatch
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_grouper():
     async def arange(count):
         for i in range(count):
@@ -29,7 +29,7 @@ async def arange(n):
         yield num
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_backpressure():
     iterable = range(10)
     backpressure = BackPressure(iterable, 2)
@@ -58,7 +58,7 @@ async def test_backpressure():
     assert not backpressure.back_pressure.locked()
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_async_map():
     executor = ThreadPoolExecutor(1)
     amap = AsyncUnorderedMap(wait_and_return, arange(3), executor)

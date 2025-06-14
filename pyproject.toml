@@ -78,7 +78,7 @@ testing = [
             "types-setuptools",
             "types-python-dateutil",
             "starlette[full]",
-            "maggma[mongogrant]"
+            "maggma[mongogrant, hvac]"
         ]
 docs = [
             "mkdocs>=1.4.0",
