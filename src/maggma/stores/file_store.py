@@ -124,9 +124,7 @@ class FileStore(MemoryStore):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         return f"file://{self.path}"
 
     def add_metadata(
@@ -409,7 +407,7 @@ class FileStore(MemoryStore):
             warnings.warn("'contents' is not a queryable field! Ignoring.")
 
         if isinstance(properties, list):
-            properties = {p: 1 for p in properties}
+            properties = dict.fromkeys(properties, 1)
 
         orig_properties = properties.copy() if properties else None
 

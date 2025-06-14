@@ -35,9 +35,7 @@ class PaginationQuery(QueryOperator):
                 description=f"Max number of entries to return in a single query. Limited to {max_limit}.",
             ),
         ) -> STORE_PARAMS:
-            """
-            Pagination parameters for the API Endpoint.
-            """
+            """Pagination parameters for the API Endpoint."""
             if _page is not None:
                 if _per_page > max_limit:
                     raise HTTPException(
@@ -79,7 +77,5 @@ class PaginationQuery(QueryOperator):
         """Stub query function for abstract class."""
 
     def meta(self) -> dict:
-        """
-        Metadata for the pagination params.
-        """
+        """Metadata for the pagination params."""
         return {"max_limit": self.max_limit}

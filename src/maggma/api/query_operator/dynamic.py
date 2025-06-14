@@ -96,9 +96,7 @@ class DynamicQueryOperator(QueryOperator):
         return cls(**{k: decoder.process_decoded(v) for k, v in d.items()})
 
     def as_dict(self) -> dict:
-        """
-        Special as_dict implemented to convert pydantic models into strings.
-        """
+        """Special as_dict implemented to convert pydantic models into strings."""
         d = super().as_dict()  # Ensures sub-classes serialize correctly
         d["model"] = f"{self.model.__module__}.{self.model.__name__}"  # type: ignore
         return d

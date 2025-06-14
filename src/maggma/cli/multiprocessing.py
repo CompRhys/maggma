@@ -37,9 +37,7 @@ class BackPressure:
             raise StopAsyncIteration
 
     async def release(self, async_iterator):
-        """
-        release iterator to pipeline the backpressure.
-        """
+        """Release iterator to pipeline the backpressure."""
         async for item in async_iterator:
             try:
                 self.back_pressure.release()
@@ -105,9 +103,7 @@ class AsyncUnorderedMap:
 
 
 async def atqdm(async_iterator, *args, **kwargs):
-    """
-    Wrapper around tqdm for async generators.
-    """
+    """Wrapper around tqdm for async generators."""
     _tqdm = tqdm(*args, **kwargs)
     async for item in async_iterator:
         _tqdm.update()

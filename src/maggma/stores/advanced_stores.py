@@ -1,6 +1,4 @@
-"""
-Advanced Stores for behavior outside normal access patterns.
-"""
+"""Advanced Stores for behavior outside normal access patterns."""
 
 import json
 import os
@@ -94,16 +92,12 @@ class MongograntStore(MongoStore):
 
     @classmethod
     def from_db_file(cls, file):
-        """
-        Raises ValueError since MongograntStores can't be initialized from a file.
-        """
+        """Raises ValueError since MongograntStores can't be initialized from a file."""
         raise ValueError("MongograntStore doesn't implement from_db_file")
 
     @classmethod
     def from_collection(cls, collection):
-        """
-        Raises ValueError since MongograntStores can't be initialized from a PyMongo collection.
-        """
+        """Raises ValueError since MongograntStores can't be initialized from a PyMongo collection."""
         raise ValueError("MongograntStore doesn't implement from_collection")
 
     def __eq__(self, other: object) -> bool:
@@ -197,9 +191,7 @@ class VaultStore(MongoStore):
 
 
 class AliasingStore(Store):
-    """
-    Special Store that aliases for the primary accessors.
-    """
+    """Special Store that aliases for the primary accessors."""
 
     def __init__(self, store: Store, aliases: dict, **kwargs):
         """
@@ -224,9 +216,7 @@ class AliasingStore(Store):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         return self.store.name
 
     def count(self, criteria: Optional[dict] = None) -> int:
@@ -263,7 +253,7 @@ class AliasingStore(Store):
 
         if properties is not None:
             if isinstance(properties, list):
-                properties = {p: 1 for p in properties}
+                properties = dict.fromkeys(properties, 1)
             substitute(properties, self.reverse_aliases)
 
         lazy_substitute(criteria, self.reverse_aliases)
@@ -321,7 +311,7 @@ class AliasingStore(Store):
 
         if properties is not None:
             if isinstance(properties, list):
-                properties = {p: 1 for p in properties}
+                properties = dict.fromkeys(properties, 1)
             substitute(properties, self.reverse_aliases)
 
         lazy_substitute(criteria, self.reverse_aliases)
@@ -390,9 +380,7 @@ class AliasingStore(Store):
 
 
 class SandboxStore(Store):
-    """
-    Provides a sandboxed view to another store.
-    """
+    """Provides a sandboxed view to another store."""
 
     def __init__(self, store: Store, sandbox: str, exclusive: bool = False):
         """

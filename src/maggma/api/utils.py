@@ -166,14 +166,10 @@ def api_sanitize(
 
 
 def allow_msonable_dict(monty_cls: type[MSONable]):
-    """
-    Patch Monty to allow for dict values for MSONable.
-    """
+    """Patch Monty to allow for dict values for MSONable."""
 
     def validate_monty(cls, v, _):
-        """
-        Stub validator for MSONable as a dictionary only.
-        """
+        """Stub validator for MSONable as a dictionary only."""
         if isinstance(v, cls):
             return v
         elif isinstance(v, dict):

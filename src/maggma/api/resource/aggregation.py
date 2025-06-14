@@ -16,9 +16,7 @@ from maggma.core import Store
 
 
 class AggregationResource(Resource):
-    """
-    Implements a REST Compatible Resource as a GET URL endpoint.
-    """
+    """Implements a REST Compatible Resource as a GET URL endpoint."""
 
     def __init__(
         self,

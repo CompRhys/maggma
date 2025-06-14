@@ -1,6 +1,4 @@
-"""
-Module containing the core Store definition.
-"""
+"""Module containing the core Store definition."""
 
 import logging
 from abc import ABCMeta, abstractmethod, abstractproperty
@@ -64,15 +62,11 @@ class Store(MSONable, metaclass=ABCMeta):
 
     @abstractproperty
     def _collection(self):
-        """
-        Returns a handle to the pymongo collection object.
-        """
+        """Returns a handle to the pymongo collection object."""
 
     @abstractproperty
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
 
     @abstractmethod
     def connect(self, force_reset: bool = False):
@@ -85,9 +79,7 @@ class Store(MSONable, metaclass=ABCMeta):
 
     @abstractmethod
     def close(self):
-        """
-        Closes any connections.
-        """
+        """Closes any connections."""
 
     @abstractmethod
     def count(self, criteria: Optional[dict] = None) -> int:

@@ -52,7 +52,7 @@ def generate_query_pipeline(query: dict, store: Store):
     projection_dict = {"_id": 0}  # Do not return _id by default
 
     if query.get("properties", False):
-        projection_dict.update({p: 1 for p in query["properties"]})
+        projection_dict.update(dict.fromkeys(query["properties"], 1))
 
     if sorting:
         pipeline.append(sort_dict)
@@ -101,7 +101,7 @@ def generate_atlas_search_pipeline(query: dict):
 
     projection_dict = {"_id": 0}
     if query.get("properties", False):
-        projection_dict.update({p: 1 for p in query["properties"]})
+        projection_dict.update(dict.fromkeys(query["properties"], 1))
     pipeline.insert(1, {"$project": projection_dict})
 
     pipeline.append({"$skip": query.get("skip", 0)})

@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from datetime import datetime
 from itertools import chain, groupby
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Literal, Optional, Union
 
 import bson
 import orjson
@@ -34,9 +34,7 @@ except ImportError:
 
 
 class MongoStore(Store):
-    """
-    A Store that connects to a Mongo collection.
-    """
+    """A Store that connects to a Mongo collection."""
 
     def __init__(
         self,
@@ -66,7 +64,7 @@ class MongoStore(Store):
             auth_source: The database to authenticate on. Defaults to the database name.
             default_sort: Default sort field and direction to use when querying. Can be used to
                 ensure determinacy in query results.
-            mongoclient_kwargs: Dict of extra kwargs to pass to MongoClient()
+            mongoclient_kwargs: Dict of extra kwargs to pass to MongoClient().
         """
         self.database = database
         self.collection_name = collection_name
@@ -89,9 +87,7 @@ class MongoStore(Store):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         return f"mongo://{self.host}/{self.database}/{self.collection_name}"
 
     def connect(self, force_reset: bool = False):
@@ -222,7 +218,7 @@ class MongoStore(Store):
             pipeline.append({"$match": criteria})
 
         if len(properties) > 0:
-            pipeline.append({"$project": {p: 1 for p in properties + keys}})
+            pipeline.append({"$project": dict.fromkeys(properties + keys, 1)})
 
         alpha = "abcdefghijklmnopqrstuvwxyz"
         group_id = {letter: f"${key}" for letter, key in zip(alpha, keys)}
@@ -312,7 +308,7 @@ class MongoStore(Store):
             mongoclient_kwargs: Dict of extra kwargs to pass to pymongo find.
         """
         if isinstance(properties, list):
-            properties = {p: 1 for p in properties}
+            properties = dict.fromkeys(properties, 1)
 
         default_sort_formatted = None
 
@@ -486,9 +482,7 @@ class MongoURIStore(MongoStore):
 
     @property
     def name(self) -> str:
-        """
-        Return a string representing this data source.
-        """
+        """Return a string representing this data source."""
         # TODO: This is not very safe since it exposes the username/password info
         return self.uri
 
@@ -519,8 +513,8 @@ class MemoryStore(MongoStore):
         host: str = "localhost",
         port: int = 27019,  # to avoid conflicts with localhost
         safe_update: bool = False,
-        mongoclient_kwargs: Optional[Dict] = None,
-        default_sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        mongoclient_kwargs: Optional[dict] = None,
+        default_sort: Optional[dict[str, Union[Sort, int]]] = None,
         **kwargs,
     ):
         """
@@ -534,7 +528,7 @@ class MemoryStore(MongoStore):
             safe_update: fail gracefully on DocumentTooLarge errors on update
             default_sort: Default sort field and direction to use when querying.
                 Can be used to ensure determinacy in query results.
-            mongoclient_kwargs: Dict of extra kwargs to pass to MongoClient()
+            mongoclient_kwargs: Dict of extra kwargs to pass to MongoClient().
         """
         if not collection_name:
             collection_name = str(datetime.utcnow())
@@ -550,9 +544,7 @@ class MemoryStore(MongoStore):
         )
 
     def connect(self, force_reset: bool = False):
-        """
-        Connect to the source data
-        """
+        """Connect to the source data."""
         if self._coll is None or force_reset:
             conn: MemoryClient = MemoryClient(
                 host=self.host,
@@ -564,7 +556,7 @@ class MemoryStore(MongoStore):
 
     @property
     def name(self):
-        """Name for the store"""
+        """Name for the store."""
         return f"mem://{self.database}/{self.collection_name}"
 
     # def __del__(self):
@@ -636,9 +628,7 @@ class MemoryStore(MongoStore):
 
 
 class JSONStore(MemoryStore):
-    """
-    A Store for access to a single or multiple JSON files.
-    """
+    """A Store for access to a single or multiple JSON files."""
 
     def __init__(
         self,
@@ -793,9 +783,7 @@ class JSONStore(MemoryStore):
             self.update_json_file()
 
     def update_json_file(self):
-        """
-        Updates the json file when a write-like operation is performed.
-        """
+        """Updates the json file when a write-like operation is performed."""
         with zopen(self.paths[0], mode="wt", encoding=self.encoding) as f:
             data = list(self.query())
             for d in data:
@@ -972,13 +960,13 @@ class MontyStore(MongoStore):
 
     def groupby(
         self,
-        keys: Union[List[str], str],
-        criteria: Optional[Dict] = None,
-        properties: Union[Dict, List, None] = None,
-        sort: Optional[Dict[str, Union[Sort, int]]] = None,
+        keys: Union[list[str], str],
+        criteria: Optional[dict] = None,
+        properties: Union[dict, list, None] = None,
+        sort: Optional[dict[str, Union[Sort, int]]] = None,
         skip: int = 0,
         limit: int = 0,
-    ) -> Iterator[Tuple[Dict, List[Dict]]]:
+    ) -> Iterator[tuple[dict, list[dict]]]:
         """
         Simple grouping function that will group documents
         by keys.
@@ -1018,7 +1006,7 @@ class MontyStore(MongoStore):
     def __eq__(self, other: object) -> bool:
         """
         Check equality for MontyStore
-        other: other Store to compare with
+        other: other Store to compare with.
         """
         if not isinstance(other, self.__class__):
             return False

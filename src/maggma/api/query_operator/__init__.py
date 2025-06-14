@@ -6,11 +6,11 @@ from maggma.api.query_operator.sparse_fields import SparseFieldsQuery
 from maggma.api.query_operator.submission import SubmissionQuery
 
 __all__ = [
-    "QueryOperator",
     "NumericQuery",
-    "StringQueryOperator",
     "PaginationQuery",
+    "QueryOperator",
     "SortQuery",
     "SparseFieldsQuery",
+    "StringQueryOperator",
     "SubmissionQuery",
 ]

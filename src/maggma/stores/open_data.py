@@ -36,10 +36,7 @@ def chunker(df: pd.DataFrame, chunk_size: int) -> Generator[pd.DataFrame, None, 
 
 
 class PandasMemoryStore:
-    """
-    A store that is backed by Pandas DataFrame.
-
-    """
+    """A store that is backed by Pandas DataFrame."""
 
     def __init__(
         self,

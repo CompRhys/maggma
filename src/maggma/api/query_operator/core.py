@@ -13,9 +13,7 @@ class QueryOperator(MSONable, metaclass=ABCMeta):
 
     @abstractmethod
     def query(self) -> STORE_PARAMS:
-        """
-        The query function that does the work for this query operator.
-        """
+        """The query function that does the work for this query operator."""
 
     def meta(self) -> dict:
         """

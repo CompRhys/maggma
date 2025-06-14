@@ -1,6 +1,4 @@
-"""
-Module containing the core builder definition.
-"""
+"""Module containing the core builder definition."""
 
 import logging
 from abc import ABCMeta, abstractmethod
@@ -46,9 +44,7 @@ class Builder(MSONable, metaclass=ABCMeta):
         self.logger.addHandler(logging.NullHandler())
 
     def connect(self):
-        """
-        Connect to the builder sources and targets.
-        """
+        """Connect to the builder sources and targets."""
         for s in self.sources + self.targets:
             s.connect()
 
@@ -107,9 +103,7 @@ class Builder(MSONable, metaclass=ABCMeta):
         """
 
     def finalize(self):
-        """
-        Perform any final clean up.
-        """
+        """Perform any final clean up."""
         # Close any Mongo connections.
         for store in self.sources + self.targets:
             try:

@@ -10,13 +10,13 @@ from maggma.api.resource.s3_url import S3URLResource
 from maggma.api.resource.submission import SubmissionResource
 
 __all__ = [
-    "Resource",
-    "HintScheme",
-    "HeaderProcessor",
     "AggregationResource",
+    "HeaderProcessor",
+    "HintScheme",
     "PostOnlyResource",
     "ReadOnlyResource",
-    "attach_query_ops",
-    "SubmissionResource",
+    "Resource",
     "S3URLResource",
+    "SubmissionResource",
+    "attach_query_ops",
 ]

@@ -1,6 +1,4 @@
-"""
-Advanced Stores for connecting to Microsoft Azure data.
-"""
+"""Advanced Stores for connecting to Microsoft Azure data."""
 
 import importlib
 import os
@@ -155,9 +153,7 @@ class AzureBlobStore(Store):
         return f"container://{self.container_name}"
 
     def connect(self, *args, **kwargs):  # lgtm[py/conflicting-attributes]
-        """
-        Connect to the source data.
-        """
+        """Connect to the source data."""
         service_client = self._get_service_client()
 
         if not self.service:
@@ -177,9 +173,7 @@ class AzureBlobStore(Store):
         self.index.connect(*args, **kwargs)
 
     def close(self):
-        """
-        Closes any connections.
-        """
+        """Closes any connections."""
         self.index.close()
         self.service = None
         self.container = None
@@ -421,8 +415,7 @@ class AzureBlobStore(Store):
             search_doc["sub_dir"] = self.sub_dir
 
         # Remove MongoDB _id from search
-        if "_id" in search_doc:
-            del search_doc["_id"]
+        search_doc.pop("_id", None)
 
         # to make hashing more meaningful, make sure last updated field is removed
         lu_info = doc.pop(self.last_updated_field, None)
@@ -544,7 +537,7 @@ class AzureBlobStore(Store):
     def rebuild_metadata_from_index(self, index_query: Optional[dict] = None):
         """
         Read data from the index store and populate the metadata of the Azure Blob.
-        Force all of the keys to be lower case to be Minio compatible
+        Force all of the keys to be lower case to be Minio compatible.
 
         Args:
             index_query: query on the index store.
