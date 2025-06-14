@@ -7,7 +7,7 @@ from pydash import get
 from maggma.stores import ConcatStore, JointStore, MemoryStore, MongoStore
 
 
-@pytest.fixture
+@pytest.fixture()
 def mongostore():
     store = MongoStore("magmma_test", "test")
     store.connect()
@@ -164,7 +164,7 @@ def test_joint_remove_docs(jointstore):
         jointstore.remove_docs({})
 
 
-@pytest.fixture
+@pytest.fixture()
 def concat_store():
     mem_stores = [MemoryStore(str(i)) for i in range(4)]
     store = ConcatStore(mem_stores)

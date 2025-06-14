@@ -85,7 +85,7 @@ def test_manager_and_worker(log_to_stdout):
     manager_thread.join()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_manager_worker_error(log_to_stdout):
     manager_thread = threading.Thread(
         target=manager,
@@ -103,7 +103,7 @@ async def test_manager_worker_error(log_to_stdout):
     manager_thread.join()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_worker_error():
     context = zmq.Context()
     socket = context.socket(REP)
@@ -132,7 +132,7 @@ async def test_worker_error():
     worker_task.join()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_worker_exit():
     context = zmq.Context()
     socket = context.socket(REP)

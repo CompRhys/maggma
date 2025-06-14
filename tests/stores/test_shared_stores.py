@@ -7,7 +7,7 @@ from maggma.stores.shared_stores import MultiStore, StoreFacade
 from maggma.validators import JSONSchemaValidator
 
 
-@pytest.fixture
+@pytest.fixture()
 def mongostore():
     store = MongoStore("maggma_test", "test")
     store.connect()
@@ -15,7 +15,7 @@ def mongostore():
     store._collection.drop()
 
 
-@pytest.fixture
+@pytest.fixture()
 def gridfsstore():
     store = GridFSStore("maggma_test", "test", key="task_id")
     store.connect()
@@ -24,12 +24,12 @@ def gridfsstore():
     store._chunks_collection.drop()
 
 
-@pytest.fixture
+@pytest.fixture()
 def multistore():
     return MultiStore()
 
 
-@pytest.fixture
+@pytest.fixture()
 def memorystore():
     store = MemoryStore()
     store.connect()

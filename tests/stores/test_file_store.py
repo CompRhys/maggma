@@ -30,7 +30,7 @@ from maggma.core import StoreError
 from maggma.stores.file_store import FileStore
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_dir(tmp_path):
     module_dir = Path(__file__).resolve().parent
     test_dir = module_dir / ".." / "test_files" / "file_store_test"

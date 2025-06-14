@@ -44,7 +44,7 @@ class TestHeaderProcessor(HeaderProcessor):
         pass
 
 
-@pytest.fixture
+@pytest.fixture()
 def owner_store():
     store = MemoryStore("owners", key="name")
     store.connect()

@@ -8,7 +8,7 @@ from maggma.stores.mongolike import MongoStore
 from maggma.stores.ssh_tunnel import SSHTunnel
 
 
-@pytest.fixture
+@pytest.fixture()
 def ssh_server_available():  # noqa: PT004
     """Fixture to determine if an SSH server is available to test the SSH tunnel."""
     client = paramiko.SSHClient()

@@ -12,7 +12,7 @@ from maggma.stores import GridFSStore, MongoStore
 from maggma.stores.gridfs import GridFSURIStore, files_collection_fields
 
 
-@pytest.fixture
+@pytest.fixture()
 def mongostore():
     store = MongoStore("maggma_test", "test")
     store.connect()

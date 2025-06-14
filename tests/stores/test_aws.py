@@ -12,7 +12,7 @@ from maggma.stores import MemoryStore, MongoStore, S3Store
 from maggma.stores.ssh_tunnel import SSHTunnel
 
 
-@pytest.fixture
+@pytest.fixture()
 def mongostore():
     store = MongoStore("maggma_test", "test")
     store.connect()
@@ -20,7 +20,7 @@ def mongostore():
     store._collection.drop()
 
 
-@pytest.fixture
+@pytest.fixture()
 def ssh_tunnel():
     try:
         tunnel = SSHTunnel("127.0.0.1:22", "127.0.0.1:27017", local_port=9000)
@@ -31,7 +31,7 @@ def ssh_tunnel():
     return tunnel
 
 
-@pytest.fixture
+@pytest.fixture()
 def s3store():
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
@@ -63,7 +63,7 @@ def s3store():
         yield store
 
 
-@pytest.fixture
+@pytest.fixture()
 def s3store_w_subdir():
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
@@ -76,7 +76,7 @@ def s3store_w_subdir():
         yield store
 
 
-@pytest.fixture
+@pytest.fixture()
 def s3store_multi():
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
@@ -89,7 +89,7 @@ def s3store_multi():
         yield store
 
 
-@pytest.fixture
+@pytest.fixture()
 def s3store_with_tunnel(ssh_tunnel):
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")

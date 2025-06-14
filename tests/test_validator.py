@@ -17,7 +17,7 @@ class LatticeMock(MSONable):
         self.a = a
 
 
-@pytest.fixture
+@pytest.fixture()
 def test_schema():
     return {
         "type": "object",
